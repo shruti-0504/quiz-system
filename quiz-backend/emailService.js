@@ -1,7 +1,12 @@
-const axios = require("axios");
 require("dotenv").config();
+const axios = require("axios");
+console.log("🔑 BREVO_API_KEY:", process.env.BREVO_API_KEY ? "Loaded" : "NOT FOUND");
+console.log("📩 EMAIL_USER:", process.env.EMAIL_USER || "NOT FOUND");
 
 const sendEmail = async (to, subject, htmlContent) => {
+    console.log("🔥 sendEmail function is running!");
+    console.log("📤 Sending email to:", to);
+
     try {
         const response = await axios.post(
             "https://api.brevo.com/v3/smtp/email",
@@ -19,9 +24,9 @@ const sendEmail = async (to, subject, htmlContent) => {
             }
         );
 
-        console.log("Email sent successfully:", response.data);
+        console.log("✅ Email API Response:", response.status, response.data);
     } catch (error) {
-        console.error("Error sending email:", error.response ? error.response.data : error.message);
+        console.error("❌ Error sending email:", error.response ? error.response.data : error.message);
     }
 };
 
