@@ -1,6 +1,4 @@
- 
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -10,11 +8,21 @@ const Login = () => {
 
     const handleLogin = async () => {
         try {
-            const res = await axios.post("http://localhost:5000/auth/login", { email, password });
-            localStorage.setItem("token", res.data.token);
-            navigate("/dashboard");
+            const res = await fetch("http://localhost:5000/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem("token", data.token);
+                navigate("/dashboard");
+            } else {
+                alert(data.message);
+            }
         } catch (err) {
-            alert("Invalid Credentials");
+            alert("Error logging in!");
         }
     };
 

@@ -1,5 +1,17 @@
-function Home() {
-    return <h1>Home Page</h1>;
-}
+import { Link } from "react-router-dom";
 
-export default Home; 
+const Home = () => {
+    return (
+        <div>
+            <h1>Welcome to the Quiz Portal</h1>
+            <Link to="/login">
+                <button>Login</button>
+            </Link>
+            <Link to="/register">
+                <button>Register</button>
+            </Link>
+        </div>
+    );
+};
+
+export default Home;
