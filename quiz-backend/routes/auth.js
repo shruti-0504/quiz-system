@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const sendEmail = require("../emailService");
 const bcrypt = require("bcryptjs");
-const User = require("../models/Users");
+const User = require("../models/User");
 
 // Temporary storage for OTPs
 const otpStore = {};

@@ -2,7 +2,7 @@ const express = require("express");
 const Quiz = require("../models/Quiz");
 const router = express.Router();
 
-router.post("/create", async (req, res) => {
+router.post("teacher/create", async (req, res) => {
     const { title, questions, password, startTime, endTime, teacherId } = req.body;
     try {
         const quiz = await Quiz.create({ title, questions, password, startTime, endTime, teacherId });
@@ -12,14 +12,14 @@ router.post("/create", async (req, res) => {
     }
 });
 
-router.post("/attempt", async (req, res) => {
+router.post("student", async (req, res) => {
     const { quizId, studentId, password } = req.body;
     const quiz = await Quiz.findById(quizId);
     if (!quiz || quiz.password !== password) return res.status(401).json({ message: "Wrong password!" });
     res.json({ quiz });
 });
 
-router.post("/submit", async (req, res) => {
+router.post("student/submit", async (req, res) => {
     const { quizId, studentId, answers } = req.body;
     const quiz = await Quiz.findById(quizId);
     let score = 0;

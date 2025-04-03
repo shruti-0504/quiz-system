@@ -34,7 +34,7 @@ const [isOtpExpired, setIsOtpExpired] = useState(false);
 
                 if (storedRole === "teacher") {
                     console.log("Navigating to Teacher Dashboard...");
-                    navigate("/teacherDash", { replace: true });
+                    window.location.href = "/teacherDash";
                 } else if (storedRole === "student") {
                     console.log("Navigating to Student Dashboard...");
                     window.location.href = "/studentDash"; 
