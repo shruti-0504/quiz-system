@@ -83,7 +83,10 @@ router.post("/login", async (req, res) => {
         return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json({ 
+        message: "Login successful",
+        role: user.role,
+    });
 });
 
 module.exports = router;

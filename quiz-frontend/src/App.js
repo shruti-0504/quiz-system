@@ -1,19 +1,26 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Quiz from "./pages/Quiz";
-import Dashboard from "./pages/Dashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+
 
 function App() {
+    const userRole = localStorage.getItem("role"); // 'teacher' or 'student'
+    console.log("User Role:", userRole);
     return (
         <Router>  {/* ✅ Use "Router" instead of "BrowserRouter" */}
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
                 <Route path="/quiz/:id" element={<Quiz />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route
+                    path="/teacherDash"
+                    element={userRole === "teacher" ? <TeacherDashboard /> : <Navigate to="/" />}
+                />
+                <Route
+                    path="/studentDash"
+                    element={userRole === "student" ? <StudentDashboard /> : <Navigate to="/" />}
+                />
             </Routes>
         </Router>
         
