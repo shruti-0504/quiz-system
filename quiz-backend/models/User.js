@@ -8,7 +8,6 @@ const UserSchema = new mongoose.Schema({
   courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
   section: { type: String, default: "" },
   registrationNumber: { type: String, required: true, unique: true },
-  updatedByTeacher: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("User", UserSchema);
