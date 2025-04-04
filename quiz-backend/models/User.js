@@ -8,22 +8,7 @@ const UserSchema = new mongoose.Schema({
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     section: {type: String,default:""},
     // Registration Number with validation
-    registrationNumber: { 
-        type: String, 
-        required: true,
-        unique: true,
-        validate: {
-            validator: function (value) {
-                if (this.role === "student") {
-                    return /^122\d{5}$/.test(value); // Student: Starts with 122 + 5 digits
-                } else if (this.role === "teacher") {
-                    return /^\d{5}$/.test(value); // Teacher: Exactly 5 digits
-                }
-                return false;
-            },
-            message: (props) => `Invalid registration number format for ${props.value}`,
-        },
-    },
+    registrationNumber: { type: String, required: true, unique: true,},
     updatedByTeacher: { type: Boolean, default: false },
 
 });
