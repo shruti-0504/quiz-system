@@ -14,18 +14,20 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/quiz/:id" element={<Quiz />} />
-                <Route
+                {/* <Route
                     path="/TeacherDash"
                     element={userRole === "teacher" ? <TeacherDashboard /> : <Navigate to="/" />}
-                />
+                /> */}
+                <Route path="/TeacherDash" element={<TeacherDashboard />} />
                 <Route
                     path="/StudentDash"
                     element={userRole === "student" ? <StudentDashboard /> : <Navigate to="/" />}
                 />
-                <Route
+                {/* <Route
                     path="/TeacherQuiz"
                     element={userRole === "teacher" ? <TeacherQuiz /> : <Navigate to="/" />}
-                />
+                /> */}
+                <Route path="/TeacherQuiz" element={<TeacherQuiz />} />
                 <Route
                     path="/StudentQuiz"
                     element={userRole === "student" ? <StudentQuiz /> : <Navigate to="/" />}

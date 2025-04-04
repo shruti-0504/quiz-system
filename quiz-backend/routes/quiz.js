@@ -2,33 +2,19 @@ const express = require("express");
 const Quiz = require("../models/Quiz");
 const router = express.Router();
 
-router.post("teacher/create", async (req, res) => {
-    const { title, questions, password, startTime, endTime, teacherId } = req.body;
-    try {
-        const quiz = await Quiz.create({ title, questions, password, startTime, endTime, teacherId });
-        res.json({ message: "Quiz created successfully!" });
-    } catch (err) {
-        res.status(400).json({ message: "Error creating quiz." });
-    }
+app.post('/quiz/create', async (req, res) => {
+    const { title, questions, duration, password } = req.body;
+    // Save to DB (add validation, check duplicates, etc.)
+    const newQuiz = await Quiz.create({ title, questions, duration, password });
+    res.status(201).json({ quizId: newQuiz._id });
 });
-
-router.post("student", async (req, res) => {
-    const { quizId, studentId, password } = req.body;
-    const quiz = await Quiz.findById(quizId);
-    if (!quiz || quiz.password !== password) return res.status(401).json({ message: "Wrong password!" });
-    res.json({ quiz });
-});
-
-router.post("student/submit", async (req, res) => {
-    const { quizId, studentId, answers } = req.body;
-    const quiz = await Quiz.findById(quizId);
-    let score = 0;
-    quiz.questions.forEach((q, index) => {
-        if (answers[index] === q.answer) score++;
+app.post('/quiz/allot', async (req, res) => {
+    const { quizId, students } = req.body;
+    // For each student, you can create a record in a "QuizAttempts" or similar table
+    students.forEach(async (email) => {
+        await QuizAttempt.create({ quizId, studentEmail: email, status: "pending" });
     });
-    quiz.students.push({ studentId, score });
-    await quiz.save();
-    res.json({ message: "Quiz submitted!" });
+    res.status(200).json({ message: "Quiz allotted successfully." });
 });
 
 module.exports = router;

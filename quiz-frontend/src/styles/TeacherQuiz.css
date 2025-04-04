@@ -1,0 +1,127 @@
+/* General styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f5f5;
+    color: #2e2e2e;
+    margin: 0;
+    padding: 0;
+}
+
+.teacher-quiz-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Section Headings */
+h2 {
+    color: #c70000;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border 0.3s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border: 1px solid #d90429;
+    outline: none;
+}
+
+/* Buttons */
+button {
+    background-color: #c70000;
+    color: white;
+    border: none;
+    padding: 10px 20px; /* Reduced size */
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 200px; /* Smaller button width */
+}
+
+button:hover {
+    background-color: #a00000;
+    transform: scale(1.05);
+}
+
+/* Radio Buttons */
+input[type="radio"] {
+    margin-right: 10px;
+    accent-color: #d90429;
+}
+
+/* Question card */
+.question-card {
+    background-color: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.question-card h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Message */
+.success-message {
+    color: green;
+    margin-top: 10px;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+
+/* Divider */
+hr {
+    border: 1px solid #c70000;
+    width: 80%;
+    margin: 10px auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .teacher-quiz-container {
+        padding: 20px;
+    }
+}
+/* .button-group.spaced button {
+    margin: 0px;
+} */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Increased space between buttons */
+}
+
+.spaced-button {
+    margin-top: 16px;
+    margin-right: 16px; /* Adds space between the buttons */
+}
