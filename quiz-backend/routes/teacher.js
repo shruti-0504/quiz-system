@@ -19,21 +19,87 @@ router.put("/update-section/:studentId", async (req, res) => {
   }
 });
 
-// Create a new quiz
+// Create a new quiz// Create a new quiz
 router.post("/quiz/create", async (req, res) => {
   try {
-    const { title, questions, createdBy } = req.body;
+    const {
+      title,
+      course,
+      section,
+      teacherRegNo,
+      password,
+      duration,
+      startTime,
+      endTime,
+      questions,
+    } = req.body;
+
+    // Basic validation
+    if (
+      !title ||
+      !course ||
+      !section ||
+      !teacherRegNo ||
+      !password ||
+      !duration ||
+      !startTime ||
+      !endTime ||
+      !questions ||
+      !Array.isArray(questions) ||
+      questions.length === 0
+    ) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    if (new Date(startTime) >= new Date(endTime)) {
+      return res
+        .status(400)
+        .json({ message: "End time must be after start time." });
+    }
+
+    for (const question of questions) {
+      if (
+        !question.questionText ||
+        !Array.isArray(question.options) ||
+        question.options.length !== 4 ||
+        question.options.some((opt) => !opt.trim())
+      ) {
+        return res.status(400).json({
+          message: "Each question must have text and 4 non-empty options.",
+        });
+      }
+
+      if (
+        typeof question.correctAnswer !== "number" ||
+        question.correctAnswer < 0 ||
+        question.correctAnswer > 3
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Each question must have a valid correct answer." });
+      }
+    }
+
+    // Save quiz
     const newQuiz = new Quiz({
       title,
+      course,
+      section,
+      teacherRegNo,
+      password,
+      duration,
+      startTime,
+      endTime,
       questions,
-      createdBy,
-      assignedTo: [],
-      isActive: false,
     });
+
     await newQuiz.save();
-    res.status(201).json(newQuiz);
+    res
+      .status(201)
+      .json({ message: "Quiz created successfully", quiz: newQuiz });
   } catch (error) {
-    res.status(500).json({ error: "Failed to create quiz" });
+    console.error("Quiz creation failed:", error);
+    res.status(500).json({ message: "Server error while creating quiz." });
   }
 });
 

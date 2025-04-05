@@ -7,35 +7,68 @@ const TeacherQuiz = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAllotForm, setShowAllotForm] = useState(false);
   const [allotSection, setAllotSection] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [newQuiz, setNewQuiz] = useState({
     title: "",
-    courseCode: "",
-    duration: "",
+    course: "",
+    section: "",
+    teacherRegNo: "",
     password: "",
+    duration: "",
     startTime: "",
     endTime: "",
-    questions: [{ question: "", options: ["", "", "", ""], correctOption: 0 }],
+    questions: [
+      {
+        questionText: "",
+        options: ["", "", "", ""],
+        correctAnswer: 0,
+      },
+    ],
   });
 
   const validateDuration = (duration, startTime, endTime) => {
-    let value = parseInt(duration, 10);
+    const value = parseInt(duration, 10);
     const start = new Date(startTime);
     const end = new Date(endTime);
     const maxDuration = (end - start) / (1000 * 60);
-    return value < 0
-      ? 0
-      : maxDuration > 0 && value > maxDuration
-      ? maxDuration
-      : value;
+
+    if (value < 0) return 0;
+    if (maxDuration > 0 && value > maxDuration) return maxDuration;
+    return value;
   };
 
   const validateQuiz = () => {
+    const requiredFields = [
+      { field: "title", message: "Quiz title is required!" },
+      { field: "course", message: "Course code is required!" },
+      { field: "section", message: "Section is required!" },
+      {
+        field: "teacherRegNo",
+        message: "Teacher registration number is required!",
+      },
+      { field: "password", message: "Password is required!" },
+      { field: "duration", message: "Duration is required!" },
+    ];
+
+    for (const { field, message } of requiredFields) {
+      if (!newQuiz[field].toString().trim()) return message;
+    }
+
+    if (!newQuiz.startTime || !newQuiz.endTime) {
+      return "Start and end times are required!";
+    }
+
+    if (new Date(newQuiz.startTime) >= new Date(newQuiz.endTime)) {
+      return "End time must be after start time!";
+    }
+
     for (let q of newQuiz.questions) {
-      if (!q.question.trim()) return "All questions must be filled!";
+      if (!q.questionText.trim()) return "All questions must be filled!";
       if (q.options.some((opt) => !opt.trim()))
         return "All options must be filled!";
     }
+
     return null;
   };
 
@@ -46,24 +79,32 @@ const TeacherQuiz = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const res = await fetch("http://localhost:5000/teacher/quiz/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newQuiz),
+        body: JSON.stringify({
+          ...newQuiz,
+          startTime: new Date(newQuiz.startTime).toISOString(),
+          endTime: new Date(newQuiz.endTime).toISOString(),
+        }),
       });
+
       const data = await res.json();
       if (res.ok) {
         alert("Quiz created successfully!");
         setNewQuiz({
           title: "",
-          courseCode: "",
-          duration: "",
+          course: "",
+          section: "",
+          teacherRegNo: "",
           password: "",
+          duration: "",
           startTime: "",
           endTime: "",
           questions: [
-            { question: "", options: ["", "", "", ""], correctOption: 0 },
+            { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
           ],
         });
         setShowCreateForm(false);
@@ -71,17 +112,27 @@ const TeacherQuiz = () => {
         alert(data.message || "Error creating quiz.");
       }
     } catch (err) {
-      alert("Error creating quiz!");
+      console.error("Quiz creation error:", err);
+      alert("Error creating quiz! Check console for details.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAllotQuiz = async () => {
+    if (!allotSection.trim()) {
+      alert("Section is required!");
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const res = await fetch("http://localhost:5000/quiz/allot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quizId: id, allotSection }),
       });
+
       const data = await res.json();
       if (res.ok) {
         alert("Quiz allotted to section!");
@@ -91,26 +142,29 @@ const TeacherQuiz = () => {
         alert(data.message || "Error allotting quiz.");
       }
     } catch (err) {
+      console.error("Allotment error:", err);
       alert("Error allotting quiz!");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const updateQuestionText = (index, text) => {
-    const updated = [...newQuiz.questions];
-    updated[index].question = text;
-    setNewQuiz({ ...newQuiz, questions: updated });
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[index].questionText = text;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
   };
 
   const updateOption = (qIndex, optIndex, value) => {
-    const updated = [...newQuiz.questions];
-    updated[qIndex].options[optIndex] = value;
-    setNewQuiz({ ...newQuiz, questions: updated });
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[qIndex].options[optIndex] = value;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
   };
 
   const updateCorrectOption = (qIndex, value) => {
-    const updated = [...newQuiz.questions];
-    updated[qIndex].correctOption = parseInt(value, 10);
-    setNewQuiz({ ...newQuiz, questions: updated });
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[qIndex].correctAnswer = parseInt(value, 10);
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
   };
 
   const addQuestion = () => {
@@ -118,9 +172,20 @@ const TeacherQuiz = () => {
       ...newQuiz,
       questions: [
         ...newQuiz.questions,
-        { question: "", options: ["", "", "", ""], correctOption: 0 },
+        { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
       ],
     });
+  };
+
+  const removeQuestion = (index) => {
+    if (newQuiz.questions.length <= 1) {
+      alert("A quiz must have at least one question!");
+      return;
+    }
+
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions.splice(index, 1);
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
   };
 
   return (
@@ -147,9 +212,23 @@ const TeacherQuiz = () => {
           <input
             type="text"
             placeholder="Course Code"
-            value={newQuiz.courseCode}
+            value={newQuiz.course}
+            onChange={(e) => setNewQuiz({ ...newQuiz, course: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Section"
+            value={newQuiz.section}
             onChange={(e) =>
-              setNewQuiz({ ...newQuiz, courseCode: e.target.value })
+              setNewQuiz({ ...newQuiz, section: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="Teacher Reg No"
+            value={newQuiz.teacherRegNo}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, teacherRegNo: e.target.value })
             }
           />
           <input
@@ -165,7 +244,15 @@ const TeacherQuiz = () => {
             placeholder="Start Time"
             value={newQuiz.startTime}
             onChange={(e) =>
-              setNewQuiz({ ...newQuiz, startTime: e.target.value })
+              setNewQuiz({
+                ...newQuiz,
+                startTime: e.target.value,
+                duration: validateDuration(
+                  newQuiz.duration,
+                  e.target.value,
+                  newQuiz.endTime
+                ),
+              })
             }
           />
           <input
@@ -173,7 +260,15 @@ const TeacherQuiz = () => {
             placeholder="End Time"
             value={newQuiz.endTime}
             onChange={(e) =>
-              setNewQuiz({ ...newQuiz, endTime: e.target.value })
+              setNewQuiz({
+                ...newQuiz,
+                endTime: e.target.value,
+                duration: validateDuration(
+                  newQuiz.duration,
+                  e.target.value,
+                  newQuiz.startTime
+                ),
+              })
             }
           />
           <input
@@ -197,7 +292,7 @@ const TeacherQuiz = () => {
               <input
                 type="text"
                 placeholder={`Question ${qIndex + 1}`}
-                value={q.question}
+                value={q.questionText}
                 onChange={(e) => updateQuestionText(qIndex, e.target.value)}
               />
               {q.options.map((opt, optIndex) => (
@@ -213,7 +308,7 @@ const TeacherQuiz = () => {
               ))}
               <label>Correct Option:</label>
               <select
-                value={q.correctOption}
+                value={q.correctAnswer}
                 onChange={(e) => updateCorrectOption(qIndex, e.target.value)}
               >
                 {q.options.map((_, optIndex) => (
