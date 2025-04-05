@@ -31,6 +31,8 @@ router.post("/quiz/create", async (req, res) => {
       duration,
       startTime,
       endTime,
+      RegStartTime,      
+      RegEndTime,  
       questions,
     } = req.body;
 
@@ -44,6 +46,8 @@ router.post("/quiz/create", async (req, res) => {
       !duration ||
       !startTime ||
       !endTime ||
+      !RegStartTime ||
+      !RegEndTime ||
       !questions ||
       !Array.isArray(questions) ||
       questions.length === 0
@@ -90,6 +94,8 @@ router.post("/quiz/create", async (req, res) => {
       duration,
       startTime,
       endTime,
+      RegStartTime,
+      RegEndTime,
       questions,
     });
 

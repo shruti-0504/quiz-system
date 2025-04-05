@@ -15,9 +15,11 @@ const TeacherQuiz = () => {
     section: "",
     teacherRegNo: "",
     password: "",
-    duration: "",
+    RegStartTime: "",
+    RegEndTime: "",
     startTime: "",
     endTime: "",
+    duration: "",
     questions: [
       {
         questionText: "",
@@ -43,10 +45,7 @@ const TeacherQuiz = () => {
       { field: "title", message: "Quiz title is required!" },
       { field: "course", message: "Course code is required!" },
       { field: "section", message: "Section is required!" },
-      {
-        field: "teacherRegNo",
-        message: "Teacher registration number is required!",
-      },
+      { field: "teacherRegNo", message: "Teacher registration number is required!" },
       { field: "password", message: "Password is required!" },
       { field: "duration", message: "Duration is required!" },
     ];
@@ -55,18 +54,29 @@ const TeacherQuiz = () => {
       if (!newQuiz[field].toString().trim()) return message;
     }
 
+    if (!newQuiz.RegStartTime || !newQuiz.RegEndTime) {
+      return "Registration start and end times are required!";
+    }
+
+    if (new Date(newQuiz.RegStartTime) >= new Date(newQuiz.RegEndTime)) {
+      return "Registration end time must be after registration start time!";
+    }
+
     if (!newQuiz.startTime || !newQuiz.endTime) {
       return "Start and end times are required!";
     }
 
     if (new Date(newQuiz.startTime) >= new Date(newQuiz.endTime)) {
-      return "End time must be after start time!";
+      return "End time must be after quiz start time!";
+    }
+
+    if (new Date(newQuiz.RegEndTime) >= new Date(newQuiz.startTime)) {
+      return "Quiz must start after registration ends!";
     }
 
     for (let q of newQuiz.questions) {
       if (!q.questionText.trim()) return "All questions must be filled!";
-      if (q.options.some((opt) => !opt.trim()))
-        return "All options must be filled!";
+      if (q.options.some((opt) => !opt.trim())) return "All options must be filled!";
     }
 
     return null;
@@ -86,6 +96,8 @@ const TeacherQuiz = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newQuiz,
+          RegStartTime: new Date(newQuiz.RegStartTime).toISOString(),
+          RegEndTime: new Date(newQuiz.RegEndTime).toISOString(),
           startTime: new Date(newQuiz.startTime).toISOString(),
           endTime: new Date(newQuiz.endTime).toISOString(),
         }),
@@ -100,9 +112,11 @@ const TeacherQuiz = () => {
           section: "",
           teacherRegNo: "",
           password: "",
-          duration: "",
+          RegStartTime: "",
+          RegEndTime: "",
           startTime: "",
           endTime: "",
+          duration: "",
           questions: [
             { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
           ],
@@ -239,9 +253,26 @@ const TeacherQuiz = () => {
               setNewQuiz({ ...newQuiz, password: e.target.value })
             }
           />
+
+          {/* <input
+            type="datetime-local"
+            placeholder="Registration Start Time"
+            value={newQuiz.RegStartTime}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, RegStartTime: e.target.value })
+            }
+          />
           <input
             type="datetime-local"
-            placeholder="Start Time"
+            placeholder="Registration End Time"
+            value={newQuiz.RegEndTime}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, RegEndTime: e.target.value })
+            }
+          />
+          <input
+            type="datetime-local"
+            placeholder="Quiz Start Time"
             value={newQuiz.startTime}
             onChange={(e) =>
               setNewQuiz({
@@ -257,7 +288,7 @@ const TeacherQuiz = () => {
           />
           <input
             type="datetime-local"
-            placeholder="End Time"
+            placeholder="Quiz End Time"
             value={newQuiz.endTime}
             onChange={(e) =>
               setNewQuiz({
@@ -265,27 +296,81 @@ const TeacherQuiz = () => {
                 endTime: e.target.value,
                 duration: validateDuration(
                   newQuiz.duration,
-                  e.target.value,
-                  newQuiz.startTime
-                ),
-              })
-            }
-          />
-          <input
-            type="number"
-            placeholder="Duration (in minutes)"
-            value={newQuiz.duration}
-            onChange={(e) =>
-              setNewQuiz({
-                ...newQuiz,
-                duration: validateDuration(
-                  e.target.value,
                   newQuiz.startTime,
-                  newQuiz.endTime
+                  e.target.value
                 ),
               })
             }
-          />
+          /> */}
+<h4 style={{ textAlign: "left" }}>📌 Quiz Registration Period</h4>
+<input
+  type="datetime-local"
+  placeholder="Registration Start Time"
+  value={newQuiz.RegStartTime}
+  onChange={(e) =>
+    setNewQuiz({ ...newQuiz, RegStartTime: e.target.value })
+  }
+/>
+<input
+  type="datetime-local"
+  placeholder="Registration End Time"
+  value={newQuiz.RegEndTime}
+  onChange={(e) =>
+    setNewQuiz({ ...newQuiz, RegEndTime: e.target.value })
+  }
+/>
+
+<h4 style={{ textAlign: "left" }}>🕐 Quiz Schedule</h4>
+
+<input
+  type="datetime-local"
+  placeholder="Quiz Start Time"
+  value={newQuiz.startTime}
+  onChange={(e) =>
+    setNewQuiz({
+      ...newQuiz,
+      startTime: e.target.value,
+      duration: validateDuration(
+        newQuiz.duration,
+        e.target.value,
+        newQuiz.endTime
+      ),
+    })
+  }
+/>
+<input
+  type="datetime-local"
+  placeholder="Quiz End Time"
+  value={newQuiz.endTime}
+  onChange={(e) =>
+    setNewQuiz({
+      ...newQuiz,
+      endTime: e.target.value,
+      duration: validateDuration(
+        newQuiz.duration,
+        newQuiz.startTime,
+        e.target.value
+      ),
+    })
+  }
+/>
+<input
+  type="number"
+  placeholder="Quiz Duration (in minutes)"
+  value={newQuiz.duration}
+  onChange={(e) =>
+    setNewQuiz({
+      ...newQuiz,
+      duration: validateDuration(
+        e.target.value,
+        newQuiz.startTime,
+        newQuiz.endTime
+      ),
+    })
+  }
+/>
+
+
 
           {newQuiz.questions.map((q, qIndex) => (
             <div className="question-card" key={qIndex}>
@@ -312,11 +397,12 @@ const TeacherQuiz = () => {
                 onChange={(e) => updateCorrectOption(qIndex, e.target.value)}
               >
                 {q.options.map((_, optIndex) => (
-                  <option key={optIndex} value={optIndex}>{`Option ${
-                    optIndex + 1
-                  }`}</option>
+                  <option key={optIndex} value={optIndex}>
+                    {`Option ${optIndex + 1}`}
+                  </option>
                 ))}
               </select>
+              <button onClick={() => removeQuestion(qIndex)}>Remove</button>
             </div>
           ))}
           <button className="spaced-button" onClick={addQuestion}>
