@@ -1,315 +1,346 @@
 /* TeacherDashboard.css */
 
 .teacher-dashboard {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f5f7fa;
-    min-height: 100vh;
-  }
-  
-  .dashboard-header {
-    background-color: #3f51b5;
-    color: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .dashboard-header h1 {
-    margin: 0;
-    font-size: 28px;
-  }
-  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  background-color: #3f51b5;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.navigation {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.navigation button {
+  background-color: #5c6bc0;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  flex: 1;
+  max-width: 200px;
+}
+
+.navigation button:hover {
+  background-color: #3949ab;
+}
+
+/* Assign Section Styles */
+.assign-section {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.assign-section h2 {
+  color: #3f51b5;
+  margin-top: 0;
+}
+
+.student-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.student-card h3 {
+  margin: 0;
+  min-width: 250px;
+  color: #333;
+}
+
+.student-card input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 150px;
+}
+
+.student-card button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100px;
+}
+
+.student-card button:hover {
+  background-color: #388e3c;
+}
+
+/* Quiz Management Styles */
+.manage-quizzes, .create-quiz-form {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.quizzes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.quiz-card {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid #3f51b5;
+  transition: transform 0.2s;
+  text-align: center;
+}
+
+.quiz-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-card h3 {
+  margin-top: 0;
+  color: #3f51b5;
+}
+
+.quiz-card p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.quiz-card button {
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+  width: 100%;
+  max-width: 200px;
+}
+
+.quiz-card button:hover {
+  background-color: #303f9f;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #444;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.questions-section {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.question-form {
+  background-color: #f5f7fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.option-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.option-input input[type="text"] {
+  flex-grow: 1;
+  padding: 8px;
+}
+
+.option-input input[type="radio"] {
+  margin-left: 10px;
+}
+
+/* Button Containers */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+  max-width: 200px;
+}
+
+/* Results View Styles */
+.results-view {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.results-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.results-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  flex: 1;
+  max-width: 250px;
+}
+
+.results-actions button:first-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+.results-actions button:last-child {
+  background-color: #f44336;
+  color: white;
+}
+
+.results-table {
+  overflow-x: auto;
+}
+
+.results-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th, .results-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.results-table th {
+  background-color: #3f51b5;
+  color: white;
+}
+
+.results-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.results-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Utility Classes */
+button {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .navigation {
-    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 10px;
-    margin-top: 15px;
   }
   
   .navigation button {
-    background-color: #5c6bc0;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-  }
-  
-  .navigation button:hover {
-    background-color: #3949ab;
-  }
-  
-  /* Assign Section Styles */
-  .assign-section {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .assign-section h2 {
-    color: #3f51b5;
-    margin-top: 0;
-  }
-  
-  .student-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .student-card h3 {
-    margin: 0;
-    min-width: 250px;
-    color: #333;
-  }
-  
-  .student-card input {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 150px;
-  }
-  
-  .student-card button {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .student-card button:hover {
-    background-color: #388e3c;
-  }
-  
-  /* Quiz Management Styles */
-  .manage-quizzes, .create-quiz-form {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    max-width: 100%;
+    width: 100%;
   }
   
   .quizzes-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+    grid-template-columns: 1fr;
   }
   
-  .quiz-card {
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 6px;
-    border-left: 4px solid #3f51b5;
-    transition: transform 0.2s;
-  }
-  
-  .quiz-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .quiz-card h3 {
-    margin-top: 0;
-    color: #3f51b5;
-  }
-  
-  .quiz-card p {
-    margin: 5px 0;
-    color: #555;
-  }
-  
-  .quiz-card button {
-    background-color: #3f51b5;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s;
-  }
-  
-  .quiz-card button:hover {
-    background-color: #303f9f;
-  }
-  
-  /* Create Quiz Form Styles */
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #444;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-  }
-  
-  .questions-section {
-    margin-top: 30px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-  }
-  
-  .question-form {
-    background-color: #f5f7fa;
-    padding: 15px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-  }
-  
-  .option-input {
-    display: flex;
+  .student-card {
+    flex-direction: column;
     align-items: center;
     gap: 10px;
-    margin-bottom: 8px;
-  }
-  
-  .option-input input[type="text"] {
-    flex-grow: 1;
-    padding: 8px;
-  }
-  
-  .option-input input[type="radio"] {
-    margin-left: 10px;
-  }
-  
-  .questions-list {
-    margin-top: 20px;
-  }
-  
-  .question-item {
-    background-color: #f0f4ff;
-    padding: 12px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  
-  .question-item p {
-    font-weight: 500;
-    margin-top: 0;
-  }
-  
-  .question-item ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin-bottom: 0;
-  }
-  
-  .question-item li {
-    padding: 5px 0;
-  }
-  
-  .question-item li.correct {
-    color: #4caf50;
-    font-weight: bold;
-  }
-  
-  /* Results View Styles */
-  .results-view {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .results-actions {
-    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
   }
   
   .results-actions button {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .results-actions button:first-child {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .results-actions button:last-child {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .results-table {
-    overflow-x: auto;
-  }
-  
-  .results-table table {
     width: 100%;
-    border-collapse: collapse;
+    max-width: 100%;
   }
   
-  .results-table th, .results-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+  .button-group {
+    flex-direction: column;
+    align-items: center;
   }
   
-  .results-table th {
-    background-color: #3f51b5;
-    color: white;
+  .button-group button {
+    width: 100%;
+    max-width: 100%;
   }
-  
-  .results-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  .results-table tr:hover {
-    background-color: #f1f1f1;
-  }
-  
-  /* Utility Classes */
-  button {
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .quizzes-list {
-      grid-template-columns: 1fr;
-    }
-    
-    .student-card {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    
-    .navigation {
-      flex-direction: column;
-    }
-  }
+}
