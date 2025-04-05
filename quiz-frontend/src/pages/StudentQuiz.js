@@ -13,7 +13,7 @@ const StudentQuiz = () => {
 
   const fetchAvailableQuizzes = async () => {
     try {
-      const response = await axios.get("/api/student/quizzes");
+      const response = await axios.get("/student/quizzes");
       const currentTime = new Date().getTime();
 
       const availableQuizzes = response.data.filter((quiz) => {

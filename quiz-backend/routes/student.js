@@ -39,6 +39,13 @@ router.get("/allcourses", async (req, res) => {
 
 router.get("/quizzes", async (req, res) => {
   //List quizzes student can attempt
+  try {
+    const { sect } = req.query;
+    const quizzes = await Quiz.find({ section: sect });
+    res.json(quizzes);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch quizzes" });
+  }
 });
 
 router.post("/verify-quiz/:quizId", async (req, res) => {

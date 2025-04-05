@@ -2,11 +2,13 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const QuizSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  title: { type: String, required: true, unique: true },
   course: { type: String, required: true }, // Stores course code (e.g., "CS101")
   section: { type: String, required: true }, // Section to target students
   teacherRegNo: { type: String, required: true }, // Teacher's Registration Number
   password: { type: String, required: true }, // Must be hashed
+  RegStartTime: { type: Date, required: true },
+  RegEndTime: { type: Date, required: true },
   startTime: { type: Date, required: true },
   endTime: { type: Date, required: true },
   duration: { type: Number, required: true }, // Duration in minutes

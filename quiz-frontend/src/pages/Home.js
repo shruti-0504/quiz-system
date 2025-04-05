@@ -94,7 +94,7 @@ const Home = () => {
     }
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      setErrors((prev) => ({ ...prev, email: "Invalid email format" }));
+      setErrors({ email: "Invalid email format" });
       return;
     }
     if (password !== cpassword) {
@@ -227,6 +227,7 @@ const Home = () => {
                   placeholder="Email"
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                {errors.email && <p className="error">{errors.email}</p>}
                 <input
                   type="password"
                   placeholder="Password"

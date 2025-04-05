@@ -110,6 +110,8 @@ router.post("/login", async (req, res) => {
   res.status(200).json({
     message: "Login successful",
     role: user.role,
+    registrationNumber: user.registrationNumber,
+    section: user.section,
   });
 });
 
