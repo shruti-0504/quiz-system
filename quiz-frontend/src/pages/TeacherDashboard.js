@@ -14,17 +14,27 @@ const TeacherDashboard = () => {
     questions: [],
     section: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const sections = ["K22FG", "K23FG", "K22CS", "K23CS", "K22SE", "K23SE"];
 
   // Fetch students with no section
   useEffect(() => {
     const fetchStudents = async () => {
       try {
+        setIsLoading(true);
         const response = await axios.get(
           "http://localhost:5000/teacher/students/no-section"
         );
-        setStudents(response.data);
+        const studentsWithSection = response.data.map(student => ({
+          ...student,
+          section: ""
+        }));
+        setStudents(studentsWithSection);
       } catch (error) {
         console.error("Error fetching students:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -37,7 +47,7 @@ const TeacherDashboard = () => {
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        // Assuming teacherId is stored in localStorage or context
+        setIsLoading(true);
         const teacherId = localStorage.getItem("userId");
         const response = await axios.get(
           `http://localhost:5000/teacher/quizzes?teacherId=${teacherId}`
@@ -45,6 +55,8 @@ const TeacherDashboard = () => {
         setQuizzes(response.data);
       } catch (error) {
         console.error("Error fetching quizzes:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -58,12 +70,15 @@ const TeacherDashboard = () => {
     const fetchResults = async () => {
       if (selectedQuiz) {
         try {
+          setIsLoading(true);
           const response = await axios.get(
             `http://localhost:5000/teacher/results/${selectedQuiz}`
           );
           setResults(response.data);
         } catch (error) {
           console.error("Error fetching results:", error);
+        } finally {
+          setIsLoading(false);
         }
       }
     };
@@ -75,6 +90,7 @@ const TeacherDashboard = () => {
 
   const updateSection = async (id, section) => {
     try {
+      setIsLoading(true);
       await axios.put(`http://localhost:5000/teacher/update-section/${id}`, {
         section,
       });
@@ -83,11 +99,14 @@ const TeacherDashboard = () => {
     } catch (error) {
       console.error("Error updating section:", error);
       alert("Failed to update section");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const createQuiz = async () => {
     try {
+      setIsLoading(true);
       const teacherId = localStorage.getItem("userId");
       const response = await axios.post(
         "http://localhost:5000/teacher/quiz/create",
@@ -102,11 +121,14 @@ const TeacherDashboard = () => {
     } catch (error) {
       console.error("Error creating quiz:", error);
       alert("Failed to create quiz");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const assignQuiz = async (quizId, studentIds) => {
     try {
+      setIsLoading(true);
       await axios.put(`http://localhost:5000/teacher/quiz/assign/${quizId}`, {
         studentIds,
       });
@@ -114,11 +136,14 @@ const TeacherDashboard = () => {
     } catch (error) {
       console.error("Error assigning quiz:", error);
       alert("Failed to assign quiz");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const releaseResults = async (quizId, release) => {
     try {
+      setIsLoading(true);
       await axios.put(
         `http://localhost:5000/teacher/results/release/${quizId}`,
         { release }
@@ -127,6 +152,8 @@ const TeacherDashboard = () => {
     } catch (error) {
       console.error("Error updating results release:", error);
       alert("Failed to update results visibility");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,7 +163,7 @@ const TeacherDashboard = () => {
         <h1>Teacher Dashboard</h1>
         <div className="navigation">
           <button onClick={() => setActiveTab("assign-section")}>
-            Assign Sections
+            Teacher Dashboard
           </button>
           <button onClick={() => setActiveTab("quizzes")}>
             Manage Quizzes
@@ -145,22 +172,36 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
+      {isLoading && <div className="loading">Loading...</div>}
+
       {activeTab === "assign-section" && (
         <div className="assign-section">
           <h2>Assign Sections to Students</h2>
-          {students.length === 0 ? (
+          {students.length === 0 && !isLoading ? (
             <p>No students without sections found.</p>
           ) : (
             students.map((student) => (
               <div key={student._id} className="student-card">
                 <h3>{student.email}</h3>
-                <input
-                  type="text"
-                  placeholder="Section"
-                  onChange={(e) => (student.section = e.target.value)}
-                />
+                <select
+                  value={student.section}
+                  onChange={(e) => {
+                    const updatedStudents = students.map(s => 
+                      s._id === student._id ? {...s, section: e.target.value} : s
+                    );
+                    setStudents(updatedStudents);
+                  }}
+                >
+                  <option value="">Select Section</option>
+                  {sections.map((section) => (
+                    <option key={section} value={section}>
+                      {section}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={() => updateSection(student._id, student.section)}
+                  disabled={!student.section}
                 >
                   Update
                 </button>
@@ -192,7 +233,6 @@ const TeacherDashboard = () => {
                 setNewQuiz({ ...newQuiz, section: e.target.value })
               }
             />
-            {/* For simplicity, using textarea for questions - in real app you'd have a better UI */}
             <textarea
               placeholder="Enter questions (JSON format)"
               value={JSON.stringify(newQuiz.questions, null, 2)}
@@ -218,7 +258,6 @@ const TeacherDashboard = () => {
                 <p>Section: {quiz.section}</p>
                 <button
                   onClick={() => {
-                    // In a real app, you'd have a proper student selection UI
                     const studentIds = students.map((s) => s._id);
                     assignQuiz(quiz._id, studentIds);
                   }}
