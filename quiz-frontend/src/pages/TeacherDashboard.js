@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 import "../styles/TeacherDashboard.css";
 
 const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
+  const [pendingStudents, setPendingStudents] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [results, setResults] = useState([]);
@@ -15,53 +15,46 @@ const TeacherDashboard = () => {
     section: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [quizApprovals, setQuizApprovals] = useState({});
   
   const sections = ["K22FG", "K23FG", "K22CS", "K23CS", "K22SE", "K23SE"];
 
-  // Fetch students with no section
+  // Fetch data
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(
+        
+        // Fetch students with no section
+        const studentsRes = await axios.get(
           "http://localhost:5000/teacher/students/no-section"
         );
-        const studentsWithSection = response.data.map(student => ({
+        setStudents(studentsRes.data.map(student => ({
           ...student,
           section: ""
-        }));
-        setStudents(studentsWithSection);
+        })));
+        
+        // Fetch pending students
+        const pendingRes = await axios.get(
+          "http://localhost:5000/teacher/students/pending"
+        );
+        setPendingStudents(pendingRes.data);
+        
+        // Fetch quizzes
+        const teacherId = localStorage.getItem("userId");
+        const quizzesRes = await axios.get(
+          `http://localhost:5000/teacher/quizzes?teacherId=${teacherId}`
+        );
+        setQuizzes(quizzesRes.data);
       } catch (error) {
-        console.error("Error fetching students:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     if (activeTab === "assign-section") {
-      fetchStudents();
-    }
-  }, [activeTab]);
-
-  // Fetch quizzes
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        setIsLoading(true);
-        const teacherId = localStorage.getItem("userId");
-        const response = await axios.get(
-          `http://localhost:5000/teacher/quizzes?teacherId=${teacherId}`
-        );
-        setQuizzes(response.data);
-      } catch (error) {
-        console.error("Error fetching quizzes:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (activeTab === "quizzes" || activeTab === "results") {
-      fetchQuizzes();
+      fetchData();
     }
   }, [activeTab]);
 
@@ -99,6 +92,25 @@ const TeacherDashboard = () => {
     } catch (error) {
       console.error("Error updating section:", error);
       alert("Failed to update section");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleApproval = async (studentId, quizId, status) => {
+    try {
+      setIsLoading(true);
+      await axios.put(`http://localhost:5000/teacher/approve-student`, {
+        studentId,
+        quizId,
+        status
+      });
+      
+      setPendingStudents(pendingStudents.filter(student => student._id !== studentId));
+      alert(`Student ${status === 'approved' ? 'approved' : 'rejected'} successfully!`);
+    } catch (error) {
+      console.error("Error updating approval status:", error);
+      alert("Failed to update approval status");
     } finally {
       setIsLoading(false);
     }
@@ -162,13 +174,24 @@ const TeacherDashboard = () => {
       <div className="dashboard-header">
         <h1>Teacher Dashboard</h1>
         <div className="navigation">
-          <button onClick={() => setActiveTab("assign-section")}>
+          <button 
+            onClick={() => setActiveTab("assign-section")}
+            className={activeTab === "assign-section" ? "active" : ""}
+          >
             Teacher Dashboard
           </button>
-          <button onClick={() => setActiveTab("quizzes")}>
+          <button 
+            onClick={() => setActiveTab("quizzes")}
+            className={activeTab === "quizzes" ? "active" : ""}
+          >
             Manage Quizzes
           </button>
-          <button onClick={() => setActiveTab("results")}>View Results</button>
+          <button 
+            onClick={() => setActiveTab("results")}
+            className={activeTab === "results" ? "active" : ""}
+          >
+            View Results
+          </button>
         </div>
       </div>
 
@@ -176,38 +199,119 @@ const TeacherDashboard = () => {
 
       {activeTab === "assign-section" && (
         <div className="assign-section">
-          <h2>Assign Sections to Students</h2>
-          {students.length === 0 && !isLoading ? (
-            <p>No students without sections found.</p>
-          ) : (
-            students.map((student) => (
-              <div key={student._id} className="student-card">
-                <h3>{student.email}</h3>
-                <select
-                  value={student.section}
-                  onChange={(e) => {
-                    const updatedStudents = students.map(s => 
-                      s._id === student._id ? {...s, section: e.target.value} : s
-                    );
-                    setStudents(updatedStudents);
-                  }}
-                >
-                  <option value="">Select Section</option>
-                  {sections.map((section) => (
-                    <option key={section} value={section}>
-                      {section}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => updateSection(student._id, student.section)}
-                  disabled={!student.section}
-                >
-                  Update
-                </button>
+          {/* Section Assignment */}
+          <div className="section-assignment">
+            <h2>Assign Sections to Students</h2>
+            {students.length === 0 && !isLoading ? (
+              <p>No students without sections found.</p>
+            ) : (
+              students.map((student) => (
+                <div key={student._id} className="student-card">
+                  <h3>{student.email}</h3>
+                  <select
+                    value={student.section}
+                    onChange={(e) => {
+                      const updatedStudents = students.map(s => 
+                        s._id === student._id ? {...s, section: e.target.value} : s
+                      );
+                      setStudents(updatedStudents);
+                    }}
+                  >
+                    <option value="">Select Section</option>
+                    {sections.map((section) => (
+                      <option key={section} value={section}>
+                        {section}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => updateSection(student._id, student.section)}
+                    disabled={!student.section}
+                  >
+                    Update
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Student Approvals */}
+          <div className="student-approvals">
+            <h2>Student Approvals</h2>
+            {pendingStudents.length === 0 && !isLoading ? (
+              <p>No pending student approvals.</p>
+            ) : (
+              <div className="table-responsive">
+                <table className="approvals-table">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Email</th>
+                      <th>Section</th>
+                      <th>Quiz</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingStudents.map((student) => (
+                      <tr key={student._id}>
+                        <td>{student.name}</td>
+                        <td>{student.email}</td>
+                        <td>{student.section || 'Not assigned'}</td>
+                        <td>
+                          <div className="dropdown-container">
+                            <select
+                              className="quiz-dropdown"
+                              value={quizApprovals[student._id]?.quizId || ""}
+                              onChange={(e) => {
+                                setQuizApprovals({
+                                  ...quizApprovals,
+                                  [student._id]: {
+                                    ...quizApprovals[student._id],
+                                    quizId: e.target.value
+                                  }
+                                });
+                              }}
+                            >
+                              <option value="">Select Quiz</option>
+                              {quizzes.map((quiz) => (
+                                <option key={quiz._id} value={quiz._id}>
+                                  {quiz.title} ({quiz.section})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </td>
+                        <td className="approval-actions">
+                          <button
+                            onClick={() => handleApproval(
+                              student._id,
+                              quizApprovals[student._id]?.quizId,
+                              'approved'
+                            )}
+                            disabled={!quizApprovals[student._id]?.quizId}
+                            className="approve-btn"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleApproval(
+                              student._id,
+                              quizApprovals[student._id]?.quizId,
+                              'rejected'
+                            )}
+                            className="reject-btn"
+                          >
+                            Reject
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))
-          )}
+            )}
+          </div>
         </div>
       )}
 

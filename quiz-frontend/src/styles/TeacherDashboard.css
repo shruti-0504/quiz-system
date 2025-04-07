@@ -395,3 +395,141 @@ button:disabled {
     width: 100%;
   }
 }
+/* Add these new styles to your existing CSS */
+
+.assign-section {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.section-assignment,
+.student-approvals {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.section-assignment h2,
+.student-approvals h2 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 22px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.approvals-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.approvals-table th,
+.approvals-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.approvals-table th {
+  background-color: #2c3e50;
+  color: white;
+  font-weight: 500;
+}
+
+.approvals-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.approvals-table tr:hover {
+  background-color: #f1f7fd;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.approve-btn {
+  padding: 8px 16px;
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.approve-btn:hover {
+  background-color: #27ae60;
+}
+
+.approve-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.reject-btn {
+  padding: 8px 16px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.reject-btn:hover {
+  background-color: #c0392b;
+}
+
+.approvals-table select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.approvals-table select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .approvals-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .approval-actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .approve-btn,
+  .reject-btn {
+    width: 100%;
+  }
+}
+.approvals-table select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+  display: block; /* Add this to ensure visibility */
+  min-width: 200px; /* Add minimum width */
+}
+.approvals-table td {
+  min-width: 150px; /* Add minimum width for cells */
+  white-space: nowrap;
+}
