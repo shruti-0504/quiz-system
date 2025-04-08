@@ -47,6 +47,9 @@ const Home = () => {
       if (res.ok && data.role) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
+        localStorage.setItem("registrationNumber", data.registrationNumber);
+        localStorage.setItem("section", data.section);
+        localStorage.setItem("name", data.name);
 
         setTimeout(() => {
           const storedRole = localStorage.getItem("role");
@@ -242,10 +245,26 @@ const Home = () => {
                   <p className="error">{errors.confirmPassword}</p>
                 )}
 
-                <select onChange={(e) => setRole(e.target.value)}>
-                  <option value="student">Student</option>
-                  <option value="teacher">Teacher</option>
-                </select>
+                <div>
+                  <input
+                    type="radio"
+                    id="student"
+                    name="role"
+                    value="student"
+                    onChange={(e) => setRole(e.target.value)}
+                  />
+                  <label htmlFor="student">Student</label>
+
+                  <input
+                    type="radio"
+                    id="teacher"
+                    name="role"
+                    value="teacher"
+                    onChange={(e) => setRole(e.target.value)}
+                  />
+                  <label htmlFor="teacher">Teacher</label>
+                </div>
+
                 <button onClick={sendOtp}>Send OTP</button>
                 {errors.fields && <p className="error">{errors.fields}</p>}
               </>

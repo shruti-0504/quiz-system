@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const StudentResponseSchema = new mongoose.Schema({
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },
+  studentRegNo: { type: String, ref: "User", required: true },
+  quizTitle: { type: String, ref: "Quiz", required: true },
   answers: [
     { questionId: mongoose.Schema.Types.ObjectId, selectedOption: Number },
   ],

@@ -7,31 +7,81 @@ const StudentDashboard = () => {
   const [user, setUser] = useState({ section: "", courses: [] });
   const [availableCourses, setAvailableCourses] = useState([]);
   const [enrolledCourses, setEnrolledCourses] = useState([]); // Store course names
+  const Studentsection = localStorage.getItem("section");
   // Fetch student details
   useEffect(() => {
-    fetch("http://localhost:5000/student/courses")
+    const registrationNumber = localStorage.getItem("registrationNumber");
+
+    fetch(
+      `http://localhost:5000/student/courses?registrationNumber=${registrationNumber}`
+    )
       .then((res) => res.json())
-      .then((data) => setUser(data))
+      .then((data) => {
+        setUser((prev) => ({ ...prev, section: data.section }));
+        setEnrolledCourses(data.enrolledCourses);
+      })
+
       .catch((err) => console.error(err));
 
-    fetch("http://localhost:5000/student/allcourses") // Fetch available courses
+    fetch(
+      `http://localhost:5000/student/allcourses?registrationNumber=${registrationNumber}`
+    )
       .then((res) => res.json())
       .then((data) => setAvailableCourses(data))
       .catch((err) => console.error(err));
   }, []);
+  const refreshCourses = async () => {
+    const registrationNumber = localStorage.getItem("registrationNumber");
 
-  // Function to enroll in a course
-  const enrollInCourse = async (courseId) => {
-    const updatedCourses = [...user.courses, courseId];
+    try {
+      const [enrolledRes, availableRes] = await Promise.all([
+        fetch(
+          `http://localhost:5000/student/courses?registrationNumber=${registrationNumber}`
+        ),
+        fetch(
+          `http://localhost:5000/student/allcourses?registrationNumber=${registrationNumber}`
+        ),
+      ]);
+
+      const enrolledData = await enrolledRes.json();
+      const availableData = await availableRes.json();
+      setUser((prev) => ({ ...prev, section: enrolledData.section }));
+      setEnrolledCourses(enrolledData.enrolledCourses);
+
+      setAvailableCourses(availableData);
+    } catch (err) {
+      console.error("Failed to refresh courses:", err);
+    }
+  };
+
+  const enrollInCourse = async (courseCode) => {
+    const registrationNumber = localStorage.getItem("registrationNumber");
 
     await fetch("http://localhost:5000/student/update-courses", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ courses: updatedCourses }),
+      body: JSON.stringify({ registrationNumber, courseCode }),
     });
 
-    setUser({ ...user, courses: updatedCourses });
+    await refreshCourses(); // Refresh both lists
   };
+
+  const UnrollFromCourse = async (courseCode) => {
+    const registrationNumber = localStorage.getItem("registrationNumber");
+
+    try {
+      await fetch("http://localhost:5000/student/remove-course", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registrationNumber, courseCode }),
+      });
+
+      await refreshCourses(); // Refresh both lists
+    } catch (error) {
+      console.error("Unenroll failed:", error);
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <div className="nav-buttons">
@@ -43,14 +93,19 @@ const StudentDashboard = () => {
         </Link>
       </div>
 
-      <h2>Edit Profile</h2>
-      <p>Section: {user.section || "Not assigned yet"}</p>
+      <p>Section: {user.section || Studentsection || "Not assigned yet"}</p>
 
       <h3>Enrolled Courses:</h3>
       <ul>
         {enrolledCourses.length > 0 ? (
           enrolledCourses.map((course) => (
-            <li key={course._id}>{course.name}</li>
+            <li key={course._id}>
+              {course.courseName ? course.courseName : "Unnamed Course"}(
+              {course.courseCode ? course.courseCode : "No Code"})
+              <button onClick={() => UnrollFromCourse(course.courseCode)}>
+                Unenroll
+              </button>
+            </li>
           ))
         ) : (
           <p>Not enrolled in any courses.</p>
@@ -64,7 +119,9 @@ const StudentDashboard = () => {
             <li key={course._id}>
               {course.courseName ? course.courseName : "Unnamed Course"}(
               {course.courseCode ? course.courseCode : "No Code"})
-              <button onClick={() => enrollInCourse(course._id)}>Enroll</button>
+              <button onClick={() => enrollInCourse(course.courseCode)}>
+                Enroll
+              </button>
             </li>
           ))
         ) : (
