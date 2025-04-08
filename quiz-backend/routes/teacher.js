@@ -2,7 +2,11 @@ const express = require("express");
 const User = require("../models/User");
 const Quiz = require("../models/Quiz"); // Assuming you have a Quiz model
 const Result = require("../models/StudentResponse"); // Assuming you have a Result model
+// const register = require("../models/StudentRegistration"); // Assuming you have a register model
+// const router = express.Router();
 const router = express.Router();
+
+const StudentRegistration = require("../models/StudentRegistration");
 
 // Teacher updates student section
 router.put("/update-section/:studentId", async (req, res) => {
@@ -31,8 +35,8 @@ router.post("/quiz/create", async (req, res) => {
       duration,
       startTime,
       endTime,
-      RegStartTime,      
-      RegEndTime,  
+      RegStartTime,
+      RegEndTime,
       questions,
     } = req.body;
 
@@ -113,7 +117,7 @@ router.post("/quiz/create", async (req, res) => {
 router.get("/quizzes", async (req, res) => {
   try {
     const { teacherId } = req.query;
-    const quizzes = await Quiz.find({ createdBy: teacherId });
+    const quizzes = await Quiz.find({ teacherRegNo: teacherId });
     res.json(quizzes);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch quizzes" });
@@ -262,6 +266,77 @@ router.put("/students/assign-section/:studentId", async (req, res) => {
     res.json(updatedStudent);
   } catch (error) {
     res.status(500).json({ error: "Failed to assign section" });
+  }
+});
+
+// PUT /teacher/approve-student
+router.put("/approve-student", async (req, res) => {
+  const { studentRegNo, quizTitle, status } = req.body;
+  console.log("Incoming data:", { studentRegNo, quizTitle, status });
+  try {
+    const updated = await StudentRegistration.findOneAndUpdate(
+      { studentRegNo, quizTitle },
+      { approvedByTeacher: status },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ message: "Student registration not found." });
+    }
+
+    res.json({ message: "Approval status updated", updated });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error updating approval status", error: err.message });
+  }
+});
+
+router.get("/students/pending", async (req, res) => {
+  const reg = req.query.teacherId;
+  const quiztitle = req.query.quizTitle;
+
+  try {
+    const pendingStudents = await StudentRegistration.aggregate([
+      {
+        $match: {
+          approvedByTeacher: "pending",
+          teacherRegNo: reg,
+          quizTitle: quiztitle,
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // matches the User model's MongoDB collection name (should be lowercase plural)
+          localField: "studentRegNo",
+          foreignField: "registrationNumber",
+          as: "studentDetails",
+        },
+      },
+      {
+        $unwind: "$studentDetails", // flattens the array
+      },
+      {
+        $project: {
+          studentRegNo: 1,
+          quizTitle: 1,
+          approvedByTeacher: 1,
+          hasAttempted: 1,
+          "studentDetails.name": 1,
+          "studentDetails.email": 1,
+          "studentDetails.section": 1,
+        },
+      },
+    ]);
+
+    res.json(pendingStudents);
+  } catch (err) {
+    res.status(500).json({
+      message: "Error fetching pending students with details",
+      error: err.message,
+    });
   }
 });
 
