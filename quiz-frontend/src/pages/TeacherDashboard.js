@@ -124,11 +124,8 @@ const TeacherDashboard = () => {
   const handleApproval = async (studentId, quizId, status) => {
     try {
       setIsLoading(true);
-      await axios.put(`http://localhost:5000/teacher/approve-student`, {
-        studentId,
-        quizId,
-        status,
-      });
+      await axios.put(`http://localhost:5000/teacher/approve-student?studentRegNo=${studentId}&quiztitle=${quizId}&status=${status}`);
+      
 
       setPendingStudents(
         pendingStudents.filter((student) => student._id !== studentId)
@@ -335,7 +332,7 @@ const TeacherDashboard = () => {
                                 handleApproval(
                                   student._id,
                                   quizTitle,
-                                  "approved"
+                                  "accepted"
                                 )
                               }
                               disabled={!quizTitle}
