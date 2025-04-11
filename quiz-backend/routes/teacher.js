@@ -271,7 +271,7 @@ router.put("/students/assign-section/:studentId", async (req, res) => {
 
 // PUT /teacher/approve-student
 router.put("/approve-student", async (req, res) => {
-  const { studentRegNo, quizTitle, status } = req.body;
+  const { studentRegNo, quizTitle, status } = req.query;
   console.log("Incoming data:", { studentRegNo, quizTitle, status });
   try {
     const updated = await StudentRegistration.findOneAndUpdate(
@@ -294,15 +294,15 @@ router.put("/approve-student", async (req, res) => {
   }
 });
 
-router.get("/students/pending", async (req, res) => {
+router.get("/students/all", async (req, res) => {
   const reg = req.query.teacherId;
   const quiztitle = req.query.quizTitle;
 
   try {
-    const pendingStudents = await StudentRegistration.aggregate([
+    const allStudents = await StudentRegistration.aggregate([
       {
         $match: {
-          approvedByTeacher: "pending",
+          // approvedByTeacher: "pending",
           teacherRegNo: reg,
           quizTitle: quiztitle,
         },
@@ -322,6 +322,7 @@ router.get("/students/pending", async (req, res) => {
         $project: {
           studentRegNo: 1,
           quizTitle: 1,
+          
           approvedByTeacher: 1,
           hasAttempted: 1,
           "studentDetails.name": 1,
@@ -331,7 +332,7 @@ router.get("/students/pending", async (req, res) => {
       },
     ]);
 
-    res.json(pendingStudents);
+    res.json(allStudents);
   } catch (err) {
     res.status(500).json({
       message: "Error fetching pending students with details",

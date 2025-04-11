@@ -17,7 +17,6 @@ const TeacherDashboard = () => {
     section: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [quizApprovals, setQuizApprovals] = useState({});
 
   const sections = ["K22FG", "K23FG", "K22CS", "K23CS", "K22SE", "K23SE"];
 
@@ -56,32 +55,32 @@ const TeacherDashboard = () => {
     }
   }, [activeTab]);
 
+  const fetchAllStudents = async () => {
+    if (!quizTitle) {
+      setPendingStudents([]);
+      return;
+    }
+  
+    setIsLoading(true);
+    try {
+      const teacherId = localStorage.getItem("registrationNumber");
+  
+      const res = await axios.get(
+        `http://localhost:5000/teacher/students/all?teacherId=${teacherId}&quizTitle=${quizTitle}`
+      );
+  
+      setPendingStudents(res.data);
+    } catch (error) {
+      console.error("Error fetching all students:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchPendingStudents = async () => {
-      if (!quizTitle) {
-        setPendingStudents([]); // Reset if nothing selected
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const teacherId = localStorage.getItem("registrationNumber");
-
-        const pendingRes = await axios.get(
-          `http://localhost:5000/teacher/students/pending?teacherId=${teacherId}&quizTitle=${quizTitle}`
-        );
-
-        setPendingStudents(pendingRes.data);
-      } catch (error) {
-        console.error("Error fetching pending students:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPendingStudents();
-  }, [quizTitle]); // 🔁 Runs every time quizTitle changes
-
+    fetchAllStudents();
+  }, [quizTitle]);
+  
+  
   // Fetch results for selected quiz
   useEffect(() => {
     const fetchResults = async () => {
@@ -112,7 +111,6 @@ const TeacherDashboard = () => {
         section,
       });
       setStudents(students.filter((student) => student._id !== id));
-      alert("Section updated successfully!");
     } catch (error) {
       console.error("Error updating section:", error);
       alert("Failed to update section");
@@ -120,21 +118,17 @@ const TeacherDashboard = () => {
       setIsLoading(false);
     }
   };
-
   const handleApproval = async (studentId, quizId, status) => {
     try {
       setIsLoading(true);
-      await axios.put(`http://localhost:5000/teacher/approve-student?studentRegNo=${studentId}&quiztitle=${quizId}&status=${status}`);
-      
-
-      setPendingStudents(
-        pendingStudents.filter((student) => student._id !== studentId)
+  
+      await axios.put(
+        `http://localhost:5000/teacher/approve-student?studentRegNo=${studentId}&quizTitle=${quizId}&status=${status}`
       );
-      alert(
-        `Student ${
-          status === "accepted" ? "accepted" : "rejected"
-        } successfully!`
-      );
+  
+  
+      // ⬅️ Refetch the updated list
+      fetchAllStudents();
     } catch (error) {
       console.error("Error updating approval status:", error);
       alert("Failed to update approval status");
@@ -142,7 +136,8 @@ const TeacherDashboard = () => {
       setIsLoading(false);
     }
   };
-
+  
+  
   const createQuiz = async () => {
     try {
       setIsLoading(true);
@@ -314,7 +309,7 @@ const TeacherDashboard = () => {
                         return selectedQuiz
                           ? student.studentDetails?.section ===
                               selectedQuiz.section
-                          : false;
+                          : true;
                       })
 
                       .map((student) => (
@@ -327,10 +322,12 @@ const TeacherDashboard = () => {
                           </td>
                           <td>{selectedQuiz?.course || "Unknown"}</td>
                           <td className="approval-actions">
+                          {student.approvedByTeacher === "pending" ? (
+                            <>
                             <button
                               onClick={() =>
                                 handleApproval(
-                                  student._id,
+                                  student.studentRegNo,
                                   quizTitle,
                                   "accepted"
                                 )
@@ -343,7 +340,7 @@ const TeacherDashboard = () => {
                             <button
                               onClick={() =>
                                 handleApproval(
-                                  student._id,
+                                  student.studentRegNo,
                                   quizTitle,
                                   "rejected"
                                 )
@@ -352,6 +349,13 @@ const TeacherDashboard = () => {
                             >
                               Reject
                             </button>
+                            </>
+                          ) : (
+                            <span style={{ fontWeight: "bold" ,color: student.approvedByTeacher === "accepted" ? "green" : "red"}}>
+                              {student.approvedByTeacher.charAt(0).toUpperCase() +
+                              student.approvedByTeacher.slice(1)}
+                              </span>
+                          )}
                           </td>
                         </tr>
                       ))}
