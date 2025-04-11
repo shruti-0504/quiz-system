@@ -23,6 +23,20 @@ router.put("/update-section/:studentId", async (req, res) => {
   }
 });
 
+router.put("/quiz/update/:quizId", async (req, res) => {
+  try {
+    const updates = req.query;
+    const updatedQuiz = await Quiz.findByIdAndUpdate(
+      req.params.quizId,
+      { $set: updates },
+      { new: true }
+    );
+    res.json({ message: "Quiz updated successfully", quiz: updatedQuiz });
+  } catch (error) {
+    console.error("Quiz update error:", error);
+    res.status(500).json({ error: "Failed to update quiz" });
+  }
+});
 // Create a new quiz// Create a new quiz
 router.post("/quiz/create", async (req, res) => {
   try {
@@ -123,94 +137,16 @@ router.get("/quizzes", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch quizzes" });
   }
 });
-
-// Assign quiz to students
-router.put("/quiz/assign/:quizId", async (req, res) => {
+router.get("/quiz/:quizId", async (req, res) => {
   try {
-    const { studentIds } = req.body;
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { $addToSet: { assignedTo: { $each: studentIds } } },
-      { new: true }
-    );
-    res.json(updatedQuiz);
+    const quiz = await Quiz.findById(req.params.quizId);
+    if (!quiz) {
+      return res.status(404).json({ error: "Quiz not found" });
+    }
+    res.json(quiz);
   } catch (error) {
-    res.status(500).json({ error: "Failed to assign quiz" });
-  }
-});
-
-// Set password for a quiz
-router.put("/quiz/password/:quizId", async (req, res) => {
-  try {
-    const { password } = req.body;
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { password },
-      { new: true }
-    );
-    res.json(updatedQuiz);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to set password" });
-  }
-});
-
-// Set start time for a quiz
-router.put("/quiz/starttime/:quizId", async (req, res) => {
-  try {
-    const { startTime } = req.body;
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { startTime },
-      { new: true }
-    );
-    res.json(updatedQuiz);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to set start time" });
-  }
-});
-
-// Set end time for a quiz
-router.put("/quiz/endtime/:quizId", async (req, res) => {
-  try {
-    const { endTime } = req.body;
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { endTime },
-      { new: true }
-    );
-    res.json(updatedQuiz);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to set end time" });
-  }
-});
-
-// Set duration for a quiz
-router.put("/quiz/duration/:quizId", async (req, res) => {
-  try {
-    const { duration } = req.body; // in minutes
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { duration },
-      { new: true }
-    );
-    res.json(updatedQuiz);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to set duration" });
-  }
-});
-
-// Edit section for a quiz
-router.put("/quiz/section/:quizId", async (req, res) => {
-  try {
-    const { section } = req.body;
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { section },
-      { new: true }
-    );
-    res.json(updatedQuiz);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update section" });
+    console.error("Error fetching quiz:", error);
+    res.status(500).json({ error: "Failed to fetch quiz" });
   }
 });
 
@@ -322,7 +258,7 @@ router.get("/students/all", async (req, res) => {
         $project: {
           studentRegNo: 1,
           quizTitle: 1,
-          
+
           approvedByTeacher: 1,
           hasAttempted: 1,
           "studentDetails.name": 1,

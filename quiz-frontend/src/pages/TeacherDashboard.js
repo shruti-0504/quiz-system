@@ -60,15 +60,15 @@ const TeacherDashboard = () => {
       setPendingStudents([]);
       return;
     }
-  
+
     setIsLoading(true);
     try {
       const teacherId = localStorage.getItem("registrationNumber");
-  
+
       const res = await axios.get(
         `http://localhost:5000/teacher/students/all?teacherId=${teacherId}&quizTitle=${quizTitle}`
       );
-  
+
       setPendingStudents(res.data);
     } catch (error) {
       console.error("Error fetching all students:", error);
@@ -79,8 +79,7 @@ const TeacherDashboard = () => {
   useEffect(() => {
     fetchAllStudents();
   }, [quizTitle]);
-  
-  
+
   // Fetch results for selected quiz
   useEffect(() => {
     const fetchResults = async () => {
@@ -121,12 +120,11 @@ const TeacherDashboard = () => {
   const handleApproval = async (studentId, quizId, status) => {
     try {
       setIsLoading(true);
-  
+
       await axios.put(
         `http://localhost:5000/teacher/approve-student?studentRegNo=${studentId}&quizTitle=${quizId}&status=${status}`
       );
-  
-  
+
       // ⬅️ Refetch the updated list
       fetchAllStudents();
     } catch (error) {
@@ -136,8 +134,7 @@ const TeacherDashboard = () => {
       setIsLoading(false);
     }
   };
-  
-  
+
   const createQuiz = async () => {
     try {
       setIsLoading(true);
@@ -322,40 +319,51 @@ const TeacherDashboard = () => {
                           </td>
                           <td>{selectedQuiz?.course || "Unknown"}</td>
                           <td className="approval-actions">
-                          {student.approvedByTeacher === "pending" ? (
-                            <>
-                            <button
-                              onClick={() =>
-                                handleApproval(
-                                  student.studentRegNo,
-                                  quizTitle,
-                                  "accepted"
-                                )
-                              }
-                              disabled={!quizTitle}
-                              className="approve-btn"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleApproval(
-                                  student.studentRegNo,
-                                  quizTitle,
-                                  "rejected"
-                                )
-                              }
-                              className="reject-btn"
-                            >
-                              Reject
-                            </button>
-                            </>
-                          ) : (
-                            <span style={{ fontWeight: "bold" ,color: student.approvedByTeacher === "accepted" ? "green" : "red"}}>
-                              {student.approvedByTeacher.charAt(0).toUpperCase() +
-                              student.approvedByTeacher.slice(1)}
+                            {student.approvedByTeacher === "pending" ? (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleApproval(
+                                      student.studentRegNo,
+                                      quizTitle,
+                                      "accepted"
+                                    )
+                                  }
+                                  disabled={!quizTitle}
+                                  className="approve-btn"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleApproval(
+                                      student.studentRegNo,
+                                      student.studentRegNo,
+                                      quizTitle,
+                                      "rejected"
+                                    )
+                                  }
+                                  className="reject-btn"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            ) : (
+                              <span
+                                style={{
+                                  fontWeight: "bold",
+                                  color:
+                                    student.approvedByTeacher === "accepted"
+                                      ? "green"
+                                      : "red",
+                                }}
+                              >
+                                {student.approvedByTeacher
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                  student.approvedByTeacher.slice(1)}
                               </span>
-                          )}
+                            )}
                           </td>
                         </tr>
                       ))}
