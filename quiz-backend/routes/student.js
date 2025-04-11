@@ -2,6 +2,10 @@ const express = require("express");
 const User = require("../models/User");
 const Course = require("../models/Course");
 const router = express.Router();
+const bcrypt = require("bcrypt");
+const StudentRegistration = require("../models/StudentRegistration");
+const Quiz = require("../models/Quiz"); // Assuming you have a Quiz model
+const StudentResponse = require("../models/StudentResponse"); // Adjust path as needed
 
 //enroll student in a course
 router.put("/update-courses", async (req, res) => {
@@ -105,29 +109,48 @@ router.get("/allcourses", async (req, res) => {
 
 router.get("/quizzes", async (req, res) => {
   try {
-    const studentId = req.user._id; // fetched from auth middleware
-    const { section } = req.query;
-
-    // Step 1: Get all approved and not-yet-attempted quiz registrations for the student
-    const registrations = await StudentRegistration.find({
-      studentId,
-      approvedByTeacher: "accepted",
-      hasAttempted: false,
-    }).select("quizId");
-
-    const quizIds = registrations.map((r) => r.quizId);
-
-    // Step 2: Filter quizzes for the student's section and time
+    const { studentId, section } = req.query;
     const currentTime = new Date();
 
-    const quizzes = await Quiz.find({
-      _id: { $in: quizIds },
-      section: section,
+    // 1. Fetch all quizzes for the section within the valid time window
+    const allQuizzes = await Quiz.find({
+      section,
       startTime: { $lte: currentTime },
       endTime: { $gte: currentTime },
+    }).lean();
+
+    // 2. Fetch all registrations for this student
+    // 2. Fetch all registrations for this student (not filtering by approval)
+    const registrations = await StudentRegistration.find({
+      studentRegNo: studentId,
+    })
+      .select("quizTitle hasAttempted approvedByTeacher")
+      .lean();
+
+    const registrationMap = new Map();
+    registrations.forEach((r) => {
+      registrationMap.set(r.quizTitle, r.hasAttempted);
     });
 
-    res.json(quizzes);
+    const finalQuizzes = allQuizzes.map((quiz) => {
+      const registration = registrations.find(
+        (r) => r.quizTitle === quiz.title
+      );
+      const isRegistered = Boolean(registration);
+      const isAttempted = registration?.hasAttempted || false;
+      const registrationStatus = registration
+        ? registration.approvedByTeacher // "accepted", "pending", "rejected"
+        : "not_registered";
+
+      return {
+        ...quiz,
+        isRegistered,
+        isAttempted,
+        registrationStatus,
+      };
+    });
+
+    res.json(finalQuizzes);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch quizzes" });
@@ -135,15 +158,111 @@ router.get("/quizzes", async (req, res) => {
 });
 
 router.post("/verify-quiz/:quizId", async (req, res) => {
-  //Check if password is correct
+  try {
+    const { quizId } = req.params;
+    const { password } = req.body;
+
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    const isMatch = await bcrypt.compare(password, quiz.password);
+
+    if (!isMatch)
+      return res.status(401).json({ message: "Incorrect password" });
+
+    res.json({ success: true, message: "Password verified" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error while verifying password" });
+  }
 });
 
 router.get("/quiz/:quizId", async (req, res) => {
-  //Get questions for a quiz
-});
+  try {
+    const quiz = await Quiz.findById(req.params.quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
 
+    res.json({ quiz });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching quiz" });
+  }
+});
 router.post("/submit-quiz/:quizId", async (req, res) => {
-  //Submit quiz answers
+  const { answers, studentId } = req.body;
+  const { quizId } = req.params;
+
+  try {
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    const user = await User.findOne({ registrationNumber: studentId });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // 🔒 Check FIRST if already submitted
+    const existingResponse = await StudentResponse.findOne({
+      studentRegNo: studentId,
+      quizTitle: quiz.title,
+    });
+
+    if (existingResponse) {
+      return res.status(400).json({ message: "Quiz already submitted." });
+    }
+
+    // ✅ Calculate score and prepare answers
+    let score = 0;
+    const studentAnswers = quiz.questions.map((question, index) => {
+      if (answers[index] === question.correctAnswer) score++;
+      return {
+        questionId: question._id,
+        selectedOption: answers[index],
+      };
+    });
+
+    // 🧠 Save to Quiz.studentScores
+    quiz.studentScores.push({
+      student: user._id,
+      score,
+    });
+    await quiz.save();
+
+    // 🧾 Save StudentResponse
+    await StudentResponse.create({
+      studentRegNo: studentId,
+      quizTitle: quiz.title,
+      answers: studentAnswers,
+      score,
+    });
+
+    // ✅ Update hasAttempted flag
+    // Step 1: Atomically lock the attempt
+    const registration = await StudentRegistration.findOneAndUpdate(
+      {
+        studentRegNo: studentId,
+        quizTitle: quiz.title,
+        hasAttempted: false,
+      },
+      { hasAttempted: true },
+      { new: true }
+    );
+
+    if (!registration) {
+      return res
+        .status(400)
+        .json({ message: "Quiz already submitted or registration missing" });
+    }
+
+    res.json({
+      success: true,
+      message: "Quiz submitted successfully!",
+      score,
+      total: quiz.questions.length,
+    });
+  } catch (err) {
+    console.error("Submit Quiz Error:", err);
+    res.status(500).json({ message: "Error submitting quiz" });
+  }
 });
 
 module.exports = router; // Export router for use in the main app

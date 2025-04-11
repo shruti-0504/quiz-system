@@ -445,7 +445,7 @@ const TeacherDashboard = () => {
             >
               <option value="">Select a Quiz</option>
               {quizzes.map((quiz) => (
-                <option key={quiz._id} value={quiz._id}>
+                <option key={quiz.title} value={quiz.title}>
                   {quiz.title}
                 </option>
               ))}
@@ -469,6 +469,7 @@ const TeacherDashboard = () => {
                 <thead>
                   <tr>
                     <th>Student</th>
+                    <th>Registration No.</th>
                     <th>Score</th>
                     <th>Submitted At</th>
                   </tr>
@@ -476,11 +477,16 @@ const TeacherDashboard = () => {
                 <tbody>
                   {results.map((result) => (
                     <tr key={result._id}>
-                      <td>{result.studentId?.email}</td>
+                      <td>{result.studentDetails?.name || "Unknown"}</td>
+                      <td>{result.studentRegNo}</td>
                       <td>
-                        {result.score} / {result.totalQuestions}
+                        {result.score} / {result.answers.length}
                       </td>
-                      <td>{new Date(result.submittedAt).toLocaleString()}</td>
+                      <td>
+                        {result.createdAt
+                          ? new Date(result.createdAt).toLocaleString()
+                          : "N/A"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

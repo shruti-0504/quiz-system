@@ -151,13 +151,36 @@ router.get("/quiz/:quizId", async (req, res) => {
 });
 
 // View quiz results
-router.get("/results/:quizId", async (req, res) => {
+router.get("/results/:quizTitle", async (req, res) => {
   try {
-    const results = await Result.find({ quizId: req.params.quizId })
-      .populate("studentId", "email name")
-      .populate("quizId", "title");
-    res.json(results);
+    const responses = await Result.find({
+      quizTitle: req.params.quizTitle,
+    });
+
+    // Fetch student details manually for each response
+    const enrichedResults = await Promise.all(
+      responses.map(async (response) => {
+        const student = await User.findOne({
+          registrationNumber: response.studentRegNo,
+        });
+
+        return {
+          ...response._doc,
+          studentDetails: student
+            ? {
+                name: student.name,
+                email: student.email,
+                registrationNumber: student.registrationNumber,
+                section: student.section,
+              }
+            : null,
+        };
+      })
+    );
+
+    res.json(enrichedResults);
   } catch (error) {
+    console.error("Error fetching results:", error);
     res.status(500).json({ error: "Failed to fetch results" });
   }
 });

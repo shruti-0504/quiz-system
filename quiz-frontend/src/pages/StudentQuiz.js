@@ -6,6 +6,8 @@ const StudentQuiz = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const studentId = localStorage.getItem("registrationNumber");
+  const studentSection = localStorage.getItem("section");
 
   useEffect(() => {
     fetchAvailableQuizzes();
@@ -13,7 +15,9 @@ const StudentQuiz = () => {
 
   const fetchAvailableQuizzes = async () => {
     try {
-      const response = await axios.get("/student/quizzes");
+      const response = await axios.get(
+        `http://localhost:5000/student/quizzes?studentId=${studentId}&section=${studentSection}`
+      );
       const currentTime = new Date().getTime();
 
       const availableQuizzes = response.data.filter((quiz) => {
@@ -39,7 +43,7 @@ const StudentQuiz = () => {
   const handlePasswordSubmit = async () => {
     try {
       const response = await axios.post(
-        `/api/student/verify-quiz/${selectedQuiz._id}`,
+        `http://localhost:5000/student/verify-quiz/${selectedQuiz._id}`,
         { password }
       );
 
@@ -72,11 +76,30 @@ const StudentQuiz = () => {
                   </p>
                 </div>
                 <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  disabled={
+                    quiz.isAttempted || quiz.registrationStatus !== "accepted"
+                  }
+                  className={`px-4 py-2 rounded ${
+                    quiz.registrationStatus === "pending"
+                      ? "bg-yellow-400 cursor-not-allowed"
+                      : quiz.registrationStatus === "rejected" ||
+                        quiz.registrationStatus === "not_registered"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : quiz.isAttempted
+                      ? "bg-red-400 cursor-not-allowed"
+                      : "bg-blue-500 text-white"
+                  }`}
                   onClick={() => handleQuizSelect(quiz)}
-                  disabled={quiz.isAttempted}
                 >
-                  {quiz.isAttempted ? "Attempted" : "Start Quiz"}
+                  {quiz.isAttempted
+                    ? "Attempted"
+                    : quiz.registrationStatus === "pending"
+                    ? "Pending Approval"
+                    : quiz.registrationStatus === "rejected"
+                    ? "Rejected"
+                    : quiz.registrationStatus === "not_registered"
+                    ? "Not Registered"
+                    : "Start Quiz"}
                 </button>
               </div>
             </li>
