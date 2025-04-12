@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import "../styles/StudentDashboard.css";
+import DarkModeToggle from "../components/DarkModeToggle";
 
 const StudentDashboard = () => {
   const [user, setUser] = useState({ section: "", courses: [] });
@@ -84,11 +85,15 @@ const StudentDashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <div className="header-top">
+        <h1>Student Dashboard</h1>
+        <DarkModeToggle />
+      </div>
       <div className="nav-buttons">
         <Link to="/StudentDash">
           <button>Dashboard</button>
         </Link>
-        <Link to="/StudentQuiz">
+        <Link to="/quiz">
           <button>Quiz</button>
         </Link>
       </div>

@@ -1,6 +1,28 @@
 .App {
   text-align: center;
 }
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+.dark-mode-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 25px;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;  /* This centers the content */
+  transition: all 0.3s ease;
+}
+
+.dark-mode-toggle:hover {
+  background-color: #eee;
+}
+
 
 .App-logo {
   height: 40vmin;

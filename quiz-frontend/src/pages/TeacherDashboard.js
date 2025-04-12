@@ -1,23 +1,43 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/TeacherDashboard.css";
+import "../styles/TeacherQuiz.css";
+import DarkModeToggle from "../components/DarkModeToggle";
 
 const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
   const [pendingStudents, setPendingStudents] = useState([]);
   const [quizTitle, setQuizTitle] = useState("");
-  const [selectedQuizSection, setSelectedQuizSection] = useState("");
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [results, setResults] = useState([]);
   const [activeTab, setActiveTab] = useState("assign-section");
+  const { id } = useParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const teacherId = localStorage.getItem("registrationNumber");
+  const [error, setError] = useState(null);
   const [newQuiz, setNewQuiz] = useState({
     title: "",
-    questions: [],
+    course: "",
     section: "",
+    teacherRegNo: teacherId,
+    password: "",
+    RegStartTime: "",
+    RegEndTime: "",
+    startTime: "",
+    endTime: "",
+    duration: "",
+    questions: [
+      {
+        questionText: "",
+        options: ["", "", "", ""],
+        correctAnswer: 0,
+      },
+    ],
   });
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [editQuiz, setEditQuiz] = useState(null);
   const sections = ["K22FG", "K23FG", "K22CS", "K23CS", "K22SE", "K23SE"];
 
   // Fetch data
@@ -36,7 +56,6 @@ const TeacherDashboard = () => {
             section: "",
           }))
         );
-        const teacherId = localStorage.getItem("registrationNumber");
 
         // Fetch quizzes
         const quizzesRes = await axios.get(
@@ -63,8 +82,6 @@ const TeacherDashboard = () => {
 
     setIsLoading(true);
     try {
-      const teacherId = localStorage.getItem("registrationNumber");
-
       const res = await axios.get(
         `http://localhost:5000/teacher/students/all?teacherId=${teacherId}&quizTitle=${quizTitle}`
       );
@@ -134,67 +151,335 @@ const TeacherDashboard = () => {
       setIsLoading(false);
     }
   };
-
-  const createQuiz = async () => {
-    try {
-      setIsLoading(true);
-      const teacherId = localStorage.getItem("userId");
-      const response = await axios.post(
-        "http://localhost:5000/teacher/quiz/create",
-        {
-          ...newQuiz,
-          createdBy: teacherId,
-        }
-      );
-      setQuizzes([...quizzes, response.data]);
-      setNewQuiz({ title: "", questions: [], section: "" });
-      alert("Quiz created successfully!");
-    } catch (error) {
-      console.error("Error creating quiz:", error);
-      alert("Failed to create quiz");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const assignQuiz = async (quizId, studentIds) => {
-    try {
-      setIsLoading(true);
-      await axios.put(`http://localhost:5000/teacher/quiz/assign/${quizId}`, {
-        studentIds,
-      });
-      alert("Quiz assigned successfully!");
-    } catch (error) {
-      console.error("Error assigning quiz:", error);
-      alert("Failed to assign quiz");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const releaseResults = async (quizId, release) => {
-    try {
-      setIsLoading(true);
-      await axios.put(
-        `http://localhost:5000/teacher/results/release/${quizId}`,
-        { release }
-      );
-      alert(`Results ${release ? "released" : "hidden"} successfully!`);
-    } catch (error) {
-      console.error("Error updating results release:", error);
-      alert("Failed to update results visibility");
-    } finally {
-      setIsLoading(false);
-    }
-  };
   useEffect(() => {
     const selected = quizzes.find((quiz) => quiz.title === quizTitle);
     setSelectedQuiz(selected || null);
   }, [quizTitle, quizzes]);
+
+  // Fetch quiz details when selected
+  useEffect(() => {
+    const fetchQuizDetails = async () => {
+      if (!selectedQuiz) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `http://localhost:5000/teacher/quiz/${selectedQuiz}`
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setEditQuiz({
+          ...data,
+          startTime: formatDateTimeForInput(data.startTime),
+          endTime: formatDateTimeForInput(data.endTime),
+          RegStartTime: formatDateTimeForInput(data.RegStartTime),
+          RegEndTime: formatDateTimeForInput(data.RegEndTime),
+        });
+      } catch (err) {
+        console.error("Failed to fetch quiz details:", err);
+        setError("Failed to load quiz details. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuizDetails();
+  }, [selectedQuiz]);
+
+  // Helper functions
+  const formatDateTimeForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16);
+  };
+
+  const validateDuration = (duration, startTime, endTime) => {
+    const value = parseInt(duration, 10);
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const maxDuration = (end - start) / (1000 * 60);
+
+    if (value < 0) return 0;
+    if (maxDuration > 0 && value > maxDuration) return maxDuration;
+    return value;
+  };
+
+  const validateQuiz = (quiz) => {
+    const requiredFields = [
+      { field: "title", message: "Quiz title is required!" },
+      { field: "course", message: "Course code is required!" },
+      { field: "section", message: "Section is required!" },
+      {
+        field: "teacherRegNo",
+        message: "Teacher registration number is required!",
+      },
+      { field: "password", message: "Password is required!" },
+      { field: "duration", message: "Duration is required!" },
+    ];
+
+    for (const { field, message } of requiredFields) {
+      if (!quiz[field]?.toString().trim()) return message;
+    }
+
+    if (!quiz.RegStartTime || !quiz.RegEndTime) {
+      return "Registration start and end times are required!";
+    }
+
+    if (new Date(quiz.RegStartTime) >= new Date(quiz.RegEndTime)) {
+      return "Registration end time must be after registration start time!";
+    }
+
+    if (!quiz.startTime || !quiz.endTime) {
+      return "Start and end times are required!";
+    }
+
+    if (new Date(quiz.startTime) >= new Date(quiz.endTime)) {
+      return "End time must be after quiz start time!";
+    }
+
+    if (new Date(quiz.RegEndTime) >= new Date(quiz.startTime)) {
+      return "Quiz must start after registration ends!";
+    }
+
+    for (let q of quiz.questions) {
+      if (!q.questionText.trim()) return "All questions must be filled!";
+      if (q.options.some((opt) => !opt.trim()))
+        return "All options must be filled!";
+    }
+
+    return null;
+  };
+  const handleCreateQuiz = async () => {
+    const error = validateQuiz(newQuiz);
+    if (error) {
+      alert(error);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/teacher/quiz/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newQuiz,
+          RegStartTime: new Date(newQuiz.RegStartTime).toISOString(),
+          RegEndTime: new Date(newQuiz.RegEndTime).toISOString(),
+          startTime: new Date(newQuiz.startTime).toISOString(),
+          endTime: new Date(newQuiz.endTime).toISOString(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Quiz created successfully!");
+        setNewQuiz({
+          title: "",
+          course: "",
+          section: "",
+          teacherRegNo: teacherId,
+          password: "",
+          RegStartTime: "",
+          RegEndTime: "",
+          startTime: "",
+          endTime: "",
+          duration: "",
+          questions: [
+            { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
+          ],
+        });
+      } else {
+        alert(data.message || "Error creating quiz.");
+      }
+    } catch (err) {
+      console.error("Quiz creation error:", err);
+      alert("Error creating quiz! Check console for details.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const handleUpdateQuiz = async () => {
+    const validationError = validateQuiz(editQuiz);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    const convertToISO = (dateVal, fallback = new Date()) => {
+      const date = new Date(dateVal || fallback);
+      return isNaN(date.getTime()) ? null : date.toISOString();
+    };
+
+    const bodyToSend = {
+      ...editQuiz,
+      duration: parseInt(editQuiz.duration) || 0,
+      RegStartTime: convertToISO(editQuiz.RegStartTime),
+      RegEndTime: convertToISO(editQuiz.RegEndTime),
+      startTime: convertToISO(editQuiz.startTime),
+      endTime: convertToISO(editQuiz.endTime),
+    };
+
+    if (
+      !bodyToSend.RegStartTime ||
+      !bodyToSend.RegEndTime ||
+      !bodyToSend.startTime ||
+      !bodyToSend.endTime
+    ) {
+      setError("Please make sure all time fields are valid.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/teacher/quiz/update/${selectedQuiz}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyToSend),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      alert("Quiz updated successfully!");
+      setShowEditForm(false);
+    } catch (err) {
+      console.error("Quiz update error:", err);
+      setError("Failed to update quiz. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Reset create form
+  const resetCreateForm = () => {
+    setNewQuiz({
+      title: "",
+      course: "",
+      section: "",
+      teacherRegNo: teacherId,
+      password: "",
+      RegStartTime: "",
+      RegEndTime: "",
+      startTime: "",
+      endTime: "",
+      duration: "",
+      questions: [
+        { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
+      ],
+    });
+  };
+
+  // Question handlers (create form)
+  const updateQuestionText = (index, text) => {
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[index].questionText = text;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+  };
+
+  const updateOption = (qIndex, optIndex, value) => {
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[qIndex].options[optIndex] = value;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+  };
+
+  const updateCorrectOption = (qIndex, value) => {
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[qIndex].correctAnswer = parseInt(value, 10) || 0;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+  };
+  const addQuestion = () => {
+    setNewQuiz({
+      ...newQuiz,
+      questions: [
+        ...newQuiz.questions,
+        { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
+      ],
+    });
+  };
+
+  const removeQuestion = (index) => {
+    if (newQuiz.questions.length <= 1) {
+      alert("A quiz must have at least one question!");
+      return;
+    }
+
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions.splice(index, 1);
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+  };
+  // Question handlers (edit form)
+  const updateEditQuestionText = (index, text) => {
+    setEditQuiz((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q, i) =>
+        i === index ? { ...q, questionText: text } : q
+      ),
+    }));
+  };
+
+  const updateEditOption = (qIndex, optIndex, value) => {
+    setEditQuiz((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q, i) =>
+        i === qIndex
+          ? {
+              ...q,
+              options: q.options.map((opt, j) =>
+                j === optIndex ? value : opt
+              ),
+            }
+          : q
+      ),
+    }));
+  };
+
+  const updateEditCorrectOption = (qIndex, value) => {
+    setEditQuiz((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q, i) =>
+        i === qIndex ? { ...q, correctAnswer: parseInt(value, 10) || 0 } : q
+      ),
+    }));
+  };
+
+  const addEditQuestion = () => {
+    setEditQuiz((prev) => ({
+      ...prev,
+      questions: [
+        ...prev.questions,
+        { questionText: "", options: ["", "", "", ""], correctAnswer: 0 },
+      ],
+    }));
+  };
+
+  const removeEditQuestion = (index) => {
+    if (editQuiz.questions.length <= 1) {
+      alert("A quiz must have at least one question!");
+      return;
+    }
+    setEditQuiz((prev) => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== index),
+    }));
+  };
+
   return (
     <div className="teacher-dashboard">
       <div className="dashboard-header">
-        <h1>Teacher Dashboard</h1>
+        <div className="header-top">
+          <h1>Teacher Dashboard</h1>
+          <DarkModeToggle />
+        </div>
+
         <div className="navigation">
           <button
             onClick={() => setActiveTab("assign-section")}
@@ -206,7 +491,13 @@ const TeacherDashboard = () => {
             onClick={() => setActiveTab("quizzes")}
             className={activeTab === "quizzes" ? "active" : ""}
           >
-            Manage Quizzes
+            Create Quiz
+          </button>
+          <button
+            onClick={() => setActiveTab("editQuizzes")}
+            className={activeTab === "editQuizzes" ? "active" : ""}
+          >
+            Edit Quizzes
           </button>
           <button
             onClick={() => setActiveTab("results")}
@@ -261,24 +552,28 @@ const TeacherDashboard = () => {
 
           {/* Student Approvals */}
           <div className="student-approvals">
-            <h2>Student Approvals</h2>
+            <h2>Registered Students</h2>
 
             <div className="quiz-selection-container">
-              <label htmlFor="quizTitle">Select Quiz: </label>
+              {/* <label htmlFor="quizTitle">Select Quiz: </label> */}
               <select
                 id="quizTitle"
                 value={quizTitle}
                 onChange={(e) => {
                   setQuizTitle(e.target.value);
                 }}
-                // setSelectedQuizSection(selected?.section || "");
-
                 className="quiz-dropdown"
               >
-                <option value="">-- Select Quiz --</option>
+                <option value="">
+                  {isLoading
+                    ? "Loading quizzes..."
+                    : quizzes.length === 0
+                    ? "No quizzes found"
+                    : "-- Select Quiz --"}
+                </option>
                 {quizzes.map((quiz) => (
                   <option key={quiz._id} value={quiz.title}>
-                    {quiz.title}
+                    {quiz.title} ({quiz.course} - {quiz.section})
                   </option>
                 ))}
               </select>
@@ -287,7 +582,7 @@ const TeacherDashboard = () => {
             {isLoading ? (
               <p>Loading...</p>
             ) : pendingStudents.length === 0 ? (
-              <p>No pending student approvals.</p>
+              <p>No Registered Students.</p>
             ) : (
               <div className="table-responsive">
                 <table className="approvals-table">
@@ -297,7 +592,7 @@ const TeacherDashboard = () => {
                       <th>Name</th>
                       <th>Section</th>
                       <th>Course</th>
-                      <th>Action</th>
+                      <th>Registration Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -376,61 +671,357 @@ const TeacherDashboard = () => {
       )}
 
       {activeTab === "quizzes" && (
-        <div className="manage-quizzes">
-          <h2>Manage Quizzes</h2>
+        <div className="create-quiz-form">
+          <h3>Create New Quiz</h3>
+          <input
+            type="text"
+            placeholder="Quiz Title"
+            value={newQuiz.title}
+            onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Course Code"
+            value={newQuiz.course}
+            onChange={(e) => setNewQuiz({ ...newQuiz, course: e.target.value })}
+          />
+          <select
+            value={newQuiz.section}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, section: e.target.value })
+            }
+          >
+            <option value="">Select Section</option>
+            {sections.map((sec) => (
+              <option key={sec} value={sec}>
+                {sec}
+              </option>
+            ))}
+          </select>
+          <input type="text" value={newQuiz.teacherRegNo} readOnly disabled />
+          <input
+            type="text"
+            placeholder="Quiz Password"
+            value={newQuiz.password}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, password: e.target.value })
+            }
+          />
+          <h4 style={{ textAlign: "left" }}>📌 Quiz Registration Period</h4>
+          <input
+            type="datetime-local"
+            value={newQuiz.RegStartTime}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, RegStartTime: e.target.value })
+            }
+          />
+          <input
+            type="datetime-local"
+            value={newQuiz.RegEndTime}
+            onChange={(e) =>
+              setNewQuiz({ ...newQuiz, RegEndTime: e.target.value })
+            }
+          />
+          <h4 style={{ textAlign: "left" }}>🕐 Quiz Schedule</h4>
+          <input
+            type="datetime-local"
+            value={newQuiz.startTime}
+            onChange={(e) =>
+              setNewQuiz({
+                ...newQuiz,
+                startTime: e.target.value,
+                duration: validateDuration(
+                  newQuiz.duration,
+                  e.target.value,
+                  newQuiz.endTime
+                ),
+              })
+            }
+          />
+          <input
+            type="datetime-local"
+            value={newQuiz.endTime}
+            onChange={(e) =>
+              setNewQuiz({
+                ...newQuiz,
+                endTime: e.target.value,
+                duration: validateDuration(
+                  newQuiz.duration,
+                  newQuiz.startTime,
+                  e.target.value
+                ),
+              })
+            }
+          />
+          <input
+            type="number"
+            placeholder="Quiz Duration (in minutes)"
+            value={newQuiz.duration}
+            onChange={(e) =>
+              setNewQuiz({
+                ...newQuiz,
+                duration: validateDuration(
+                  e.target.value,
+                  newQuiz.startTime,
+                  newQuiz.endTime
+                ),
+              })
+            }
+          />
+          {newQuiz.questions.map((q, qIndex) => (
+            <div className="question-card" key={qIndex}>
+              <input
+                type="text"
+                placeholder={`Question ${qIndex + 1}`}
+                value={q.questionText}
+                onChange={(e) => updateQuestionText(qIndex, e.target.value)}
+              />
+              {q.options.map((opt, optIndex) => (
+                <input
+                  key={optIndex}
+                  type="text"
+                  placeholder={`Option ${optIndex + 1}`}
+                  value={opt}
+                  onChange={(e) =>
+                    updateOption(qIndex, optIndex, e.target.value)
+                  }
+                />
+              ))}
+              <label>Correct Option:</label>
+              <select
+                value={q.correctAnswer}
+                onChange={(e) => updateCorrectOption(qIndex, e.target.value)}
+              >
+                {q.options.map((_, optIndex) => (
+                  <option key={optIndex} value={optIndex}>
+                    {`Option ${optIndex + 1}`}
+                  </option>
+                ))}
+              </select>
+              <button onClick={() => removeQuestion(qIndex)}>Remove</button>
+            </div>
+          ))}
+          <button className="spaced-button" onClick={addQuestion}>
+            Add Question
+          </button>
+          <button className="spaced-button" onClick={handleCreateQuiz}>
+            Submit Quiz
+          </button>
+        </div>
+      )}
 
-          <div className="create-quiz">
-            <h3>Create New Quiz</h3>
-            <input
-              type="text"
-              placeholder="Quiz Title"
-              value={newQuiz.title}
-              onChange={(e) =>
-                setNewQuiz({ ...newQuiz, title: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Section"
-              value={newQuiz.section}
-              onChange={(e) =>
-                setNewQuiz({ ...newQuiz, section: e.target.value })
-              }
-            />
-            <textarea
-              placeholder="Enter questions (JSON format)"
-              value={JSON.stringify(newQuiz.questions, null, 2)}
-              onChange={(e) => {
-                try {
-                  setNewQuiz({
-                    ...newQuiz,
-                    questions: JSON.parse(e.target.value),
-                  });
-                } catch (err) {
-                  console.error("Invalid JSON");
-                }
-              }}
-            />
-            <button onClick={createQuiz}>Create Quiz</button>
+      {activeTab === "editQuizzes" && (
+        <div className="quiz-form">
+          <h3>Edit Quiz</h3>
+
+          <div className="form-group">
+            <label>Teacher Registration No:</label>
+            <input type="text" value={newQuiz.teacherRegNo} readOnly disabled />
           </div>
 
-          <div className="quiz-list">
-            <h3>Your Quizzes</h3>
-            {quizzes.map((quiz) => (
-              <div key={quiz._id} className="quiz-card">
-                <h4>{quiz.title}</h4>
-                <p>Section: {quiz.section}</p>
-                <button
-                  onClick={() => {
-                    const studentIds = students.map((s) => s._id);
-                    assignQuiz(quiz._id, studentIds);
-                  }}
+          <div className="form-group">
+            <label>Select Quiz:</label>
+            <select
+              value={selectedQuiz}
+              onChange={(e) => setSelectedQuiz(e.target.value)}
+              disabled={isLoading}
+            >
+              <option value="">
+                {isLoading
+                  ? "Loading quizzes..."
+                  : quizzes.length === 0
+                  ? "No quizzes found"
+                  : "Select a quiz"}
+              </option>
+              {quizzes.map((quiz) => (
+                <option key={quiz._id} value={quiz._id}>
+                  {quiz.title} ({quiz.course} - {quiz.section})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {editQuiz && (
+            <>
+              <div className="form-group">
+                <label>Quiz Title*:</label>
+                <input
+                  type="text"
+                  value={editQuiz.title}
+                  // onChange={(e) =>
+                  //   setEditQuiz({ ...editQuiz, title: e.target.value })
+                  // }
+                  disabled
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Section:</label>
+                <select
+                  value={editQuiz.section}
+                  onChange={(e) =>
+                    setEditQuiz({ ...editQuiz, section: e.target.value })
+                  }
                 >
-                  Assign to Students
+                  <option value="">Select Section</option>
+                  {sections.map((sec) => (
+                    <option key={sec} value={sec}>
+                      {sec}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="time-section">
+                <h4>Registration Period</h4>
+                <div className="form-group">
+                  <label>Start Time:</label>
+                  <input
+                    type="datetime-local"
+                    value={editQuiz.RegStartTime}
+                    onChange={(e) =>
+                      setEditQuiz({ ...editQuiz, RegStartTime: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>End Time:</label>
+                  <input
+                    type="datetime-local"
+                    value={editQuiz.RegEndTime}
+                    onChange={(e) =>
+                      setEditQuiz({ ...editQuiz, RegEndTime: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="time-section">
+                <h4>Quiz Schedule</h4>
+                <div className="form-group">
+                  <label>Start Time:</label>
+                  <input
+                    type="datetime-local"
+                    value={editQuiz.startTime}
+                    onChange={(e) =>
+                      setEditQuiz({
+                        ...editQuiz,
+                        startTime: e.target.value,
+                        duration: validateDuration(
+                          editQuiz.duration,
+                          e.target.value,
+                          editQuiz.endTime
+                        ),
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>End Time:</label>
+                  <input
+                    type="datetime-local"
+                    value={editQuiz.endTime}
+                    onChange={(e) =>
+                      setEditQuiz({
+                        ...editQuiz,
+                        endTime: e.target.value,
+                        duration: validateDuration(
+                          editQuiz.duration,
+                          editQuiz.startTime,
+                          e.target.value
+                        ),
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Duration (minutes)*:</label>
+                  <input
+                    type="number"
+                    value={isNaN(editQuiz.duration) ? "" : editQuiz.duration}
+                    onChange={(e) =>
+                      setEditQuiz({
+                        ...editQuiz,
+                        duration: validateDuration(
+                          e.target.value,
+                          editQuiz.startTime,
+                          editQuiz.endTime
+                        ),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="questions-section">
+                <h4>Questions</h4>
+                {editQuiz.questions.map((q, qIndex) => (
+                  <div className="question-card" key={qIndex}>
+                    <div className="form-group">
+                      <label>Question {qIndex + 1}:</label>
+                      <input
+                        type="text"
+                        value={q.questionText}
+                        onChange={(e) =>
+                          updateEditQuestionText(qIndex, e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="options-group">
+                      {q.options.map((opt, optIndex) => (
+                        <div className="form-group" key={optIndex}>
+                          <label>Option {optIndex + 1}:</label>
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) =>
+                              updateEditOption(qIndex, optIndex, e.target.value)
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="form-group">
+                      <label>Correct Option:</label>
+                      <select
+                        value={q.correctAnswer}
+                        onChange={(e) =>
+                          updateEditCorrectOption(qIndex, e.target.value)
+                        }
+                      >
+                        {q.options.map((_, optIndex) => (
+                          <option key={optIndex} value={optIndex}>
+                            Option {optIndex + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <button
+                      className="remove-btn"
+                      onClick={() => removeEditQuestion(qIndex)}
+                    >
+                      Remove Question
+                    </button>
+                  </div>
+                ))}
+
+                <button className="add-btn" onClick={addEditQuestion}>
+                  Add Question
                 </button>
               </div>
-            ))}
-          </div>
+
+              <button
+                className="submit-btn"
+                onClick={handleUpdateQuiz}
+                // disabled={isLoading}
+              >
+                {isLoading ? "Updating..." : "Update Quiz"}
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -451,17 +1042,6 @@ const TeacherDashboard = () => {
               ))}
             </select>
           </div>
-
-          {selectedQuiz && (
-            <div className="results-actions">
-              <button onClick={() => releaseResults(selectedQuiz, true)}>
-                Release Results to Students
-              </button>
-              <button onClick={() => releaseResults(selectedQuiz, false)}>
-                Hide Results from Students
-              </button>
-            </div>
-          )}
 
           {results.length > 0 && (
             <div className="results-table">

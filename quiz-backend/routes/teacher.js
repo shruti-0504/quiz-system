@@ -137,6 +137,7 @@ router.get("/quizzes", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch quizzes" });
   }
 });
+
 router.get("/quiz/:quizId", async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.quizId);
@@ -182,21 +183,6 @@ router.get("/results/:quizTitle", async (req, res) => {
   } catch (error) {
     console.error("Error fetching results:", error);
     res.status(500).json({ error: "Failed to fetch results" });
-  }
-});
-
-// Allow students to see their results
-router.put("/results/release/:quizId", async (req, res) => {
-  try {
-    const { release } = req.body; // boolean
-    const updatedQuiz = await Quiz.findByIdAndUpdate(
-      req.params.quizId,
-      { resultsReleased: release },
-      { new: true }
-    );
-    res.json(updatedQuiz);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update results release status" });
   }
 });
 

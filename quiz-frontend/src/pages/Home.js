@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.css";
+import DarkModeToggle from "../components/DarkModeToggle";
 
 const Home = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,8 +32,6 @@ const Home = () => {
       return;
     }
 
-    console.log("Sending login request:", { registrationNumber, password });
-
     try {
       const res = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
@@ -42,14 +41,13 @@ const Home = () => {
 
       const data = await res.json();
 
-      console.log("Server Response:", res.status, data); // Log status and response
-
       if (res.ok && data.role) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
         localStorage.setItem("registrationNumber", data.registrationNumber);
         localStorage.setItem("section", data.section);
         localStorage.setItem("name", data.name);
+        localStorage.setItem("darkMode", true);
 
         setTimeout(() => {
           const storedRole = localStorage.getItem("role");
@@ -170,7 +168,10 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Welcome to the Quiz Portal</h1>
+      <div className="header-top">
+        <h1>Welcome to Quiz Portal</h1>
+        <DarkModeToggle />
+      </div>
       <div className="auth-container">
         <div className="tabs">
           <button
@@ -245,7 +246,7 @@ const Home = () => {
                   <p className="error">{errors.confirmPassword}</p>
                 )}
 
-                <div>
+                <div style={{ display: "flex", alignItems: "center" }}>
                   <input
                     type="radio"
                     id="student"
@@ -253,7 +254,12 @@ const Home = () => {
                     value="student"
                     onChange={(e) => setRole(e.target.value)}
                   />
-                  <label htmlFor="student">Student</label>
+                  <label
+                    htmlFor="student"
+                    style={{ marginLeft: "1px", marginRight: "100px" }}
+                  >
+                    Student
+                  </label>
 
                   <input
                     type="radio"
@@ -262,7 +268,12 @@ const Home = () => {
                     value="teacher"
                     onChange={(e) => setRole(e.target.value)}
                   />
-                  <label htmlFor="teacher">Teacher</label>
+                  <label
+                    htmlFor="teacher"
+                    style={{ marginLeft: "1px", marginRight: "150px" }}
+                  >
+                    Teacher
+                  </label>
                 </div>
 
                 <button onClick={sendOtp}>Send OTP</button>
