@@ -14,6 +14,7 @@ h1{
   background-color: transparent;
   border: 1px solid #ccc;
   cursor: pointer;
+  color:#000;
   display: flex;
   justify-content: center;
   align-items: center;  /* This centers the content */
@@ -22,6 +23,7 @@ h1{
 
 .dark-mode-toggle:hover {
   background-color: #eee;
+  color:#000;
 }
 
 

@@ -7,56 +7,36 @@ const StudentRegistration = require("../models/StudentRegistration");
 const Quiz = require("../models/Quiz"); // Assuming you have a Quiz model
 const StudentResponse = require("../models/StudentResponse"); // Adjust path as needed
 
-//enroll student in a course
-router.put("/update-courses", async (req, res) => {
+router.put("/courses", async (req, res) => {
   try {
-    const { registrationNumber, courseCode } = req.body;
+    const { registrationNumber, courseCode, action } = req.body;
 
-    const updatedStudent = await User.findOneAndUpdate(
-      { registrationNumber },
-      { $addToSet: { courses: courseCode } }, // prevent duplicates
-      { new: true }
-    );
-
-    if (!updatedStudent) {
-      return res.status(404).json({ error: "Student not found" });
+    if (!registrationNumber || !courseCode || !action) {
+      return res.status(400).json({ message: "Missing required fields." });
     }
 
-    await Course.findOneAndUpdate(
-      { courseCode },
-      { $addToSet: { studentRegNos: registrationNumber } }
-    );
+    const student = await User.findOne({ registrationNumber });
 
-    res.json(updatedStudent);
-  } catch (error) {
-    console.error("Update error:", error);
-    res.status(500).json({ error: "Failed to update courses" });
-  }
-});
-
-router.put("/remove-course", async (req, res) => {
-  try {
-    const { registrationNumber, courseCode } = req.body;
-
-    const updatedStudent = await User.findOneAndUpdate(
-      { registrationNumber },
-      { $pull: { courses: courseCode } },
-      { new: true }
-    );
-
-    if (!updatedStudent) {
-      return res.status(404).json({ error: "Student not found" });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found." });
     }
 
-    await Course.findOneAndUpdate(
-      { courseCode },
-      { $pull: { studentRegNos: registrationNumber } }
-    );
+    if (action === "enroll") {
+      // Avoid duplicate enrollments
+      if (!student.courses.includes(courseCode)) {
+        student.courses.push(courseCode);
+      }
+    } else if (action === "unenroll") {
+      student.courses = student.courses.filter((code) => code !== courseCode);
+    } else {
+      return res.status(400).json({ message: "Invalid action." });
+    }
 
-    res.json({ message: "Disenrolled successfully", updatedStudent });
-  } catch (error) {
-    console.error("Disenroll error:", error);
-    res.status(500).json({ error: "Failed to disenroll from course" });
+    await student.save();
+    return res.status(200).json({ message: `Successfully ${action}ed.` });
+  } catch (err) {
+    console.error("Error updating course:", err);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
@@ -64,99 +44,98 @@ router.get("/courses", async (req, res) => {
   const { registrationNumber } = req.query;
 
   try {
-    // Step 1: Find the student by registration number
     const student = await User.findOne({ registrationNumber });
 
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Step 2: Use course IDs or codes to get course details
-    const enrolledCourses = await Course.find({
-      courseCode: { $in: student.courses },
-    });
+    const allCourses = await Course.find();
 
     res.json({
       section: student.section,
-      enrolledCourses, // send course objects
+      enrolledCourseCodes: student.courses,
+      allCourses,
     });
   } catch (error) {
     console.error("Failed to fetch courses:", error);
-    res.status(500).json({ error: "Failed to fetch enrolled courses" });
+    res.status(500).json({ error: "Failed to fetch courses" });
   }
 });
-
-router.get("/allcourses", async (req, res) => {
-  try {
-    const registrationNumber = req.query.registrationNumber;
-
-    if (!registrationNumber) {
-      return res.status(400).json({ error: "Registration number is required" });
-    }
-
-    const courses = await Course.find({
-      studentRegNos: { $nin: [registrationNumber] },
-    });
-
-    res.json(courses);
-  } catch (error) {
-    console.error("Failed to fetch courses:", error);
-    res.status(500).json({ error: "Failed to fetch available courses" });
-  }
-});
-
-// Assuming you have middleware to extract student from token/session
 
 router.get("/quizzes", async (req, res) => {
   try {
     const { studentId, section } = req.query;
-    const currentTime = new Date();
+    const now = new Date();
 
-    // 1. Fetch all quizzes for the section within the valid time window
-    const allQuizzes = await Quiz.find({
-      section,
-      startTime: { $lte: currentTime },
-      endTime: { $gte: currentTime },
-    }).lean();
-
-    // 2. Fetch all registrations for this student
-    // 2. Fetch all registrations for this student (not filtering by approval)
-    const registrations = await StudentRegistration.find({
-      studentRegNo: studentId,
-    })
-      .select("quizTitle hasAttempted approvedByTeacher")
-      .lean();
+    const [quizzes, registrations] = await Promise.all([
+      Quiz.find({ section }).lean(),
+      StudentRegistration.find({ studentRegNo: studentId }).lean(),
+    ]);
 
     const registrationMap = new Map();
     registrations.forEach((r) => {
-      registrationMap.set(r.quizTitle, r.hasAttempted);
+      registrationMap.set(r.quizTitle, r);
     });
 
-    const finalQuizzes = allQuizzes.map((quiz) => {
-      const registration = registrations.find(
-        (r) => r.quizTitle === quiz.title
-      );
-      const isRegistered = Boolean(registration);
-      const isAttempted = registration?.hasAttempted || false;
-      const registrationStatus = registration
-        ? registration.approvedByTeacher // "accepted", "pending", "rejected"
-        : "not_registered";
+    const result = quizzes.map((quiz) => {
+      const reg = registrationMap.get(quiz.title);
+      const isRegistered = !!reg;
+      const hasAttempted = reg?.hasAttempted || false;
+      const registrationStatus = reg?.approvedByTeacher || "not_registered";
+
+      const canRegister = now >= quiz.RegStartTime && now <= quiz.RegEndTime;
+      const canAttempt =
+        now >= quiz.startTime &&
+        now <= quiz.endTime &&
+        isRegistered &&
+        reg?.approvedByTeacher === "accepted";
 
       return {
         ...quiz,
         isRegistered,
-        isAttempted,
+        hasAttempted,
         registrationStatus,
+        canRegister,
+        canAttempt,
       };
     });
 
-    res.json(finalQuizzes);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch quizzes" });
+    res.json(result);
+  } catch (err) {
+    console.error("Failed to fetch quizzes:", err);
+    res.status(500).json({ message: "Server error while fetching quizzes" });
   }
 });
 
+router.post("/register-quiz", async (req, res) => {
+  try {
+    const { studentRegNo, quizTitle, teacherRegNo } = req.body;
+
+    const alreadyRegistered = await StudentRegistration.findOne({
+      studentRegNo,
+      quizTitle,
+    });
+
+    if (alreadyRegistered) {
+      return res
+        .status(400)
+        .json({ message: "Already registered for this quiz" });
+    }
+
+    const registration = new StudentRegistration({
+      studentRegNo,
+      quizTitle,
+      teacherRegNo,
+    });
+
+    await registration.save();
+    res.json({ message: "Registration successful", registration });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Server error while registering" });
+  }
+});
 router.post("/verify-quiz/:quizId", async (req, res) => {
   try {
     const { quizId } = req.params;
@@ -189,6 +168,7 @@ router.get("/quiz/:quizId", async (req, res) => {
     res.status(500).json({ message: "Error fetching quiz" });
   }
 });
+
 router.post("/submit-quiz/:quizId", async (req, res) => {
   const { answers, studentId } = req.body;
   const { quizId } = req.params;

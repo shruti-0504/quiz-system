@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useParams } from "react-router-dom";
-
+import QuizCard from "../components/QuizCard";
 let tabSwitchCount = 0;
 let quizForceSubmitted = false; // renamed for clarity
 
@@ -56,15 +56,12 @@ const Quiz = () => {
       const response = await axios.get(
         `http://localhost:5000/student/quizzes?studentId=${studentId}&section=${studentSection}`
       );
-      const currentTime = new Date().getTime();
+      // Filter the quizzes after they are fetched
+      const attemptableQuizzes = response.data.filter(
+        (q) => q.canAttempt && !q.hasAttempted
+      );
 
-      const availableQuizzes = response.data.filter((quiz) => {
-        const startTime = new Date(quiz.startTime).getTime();
-        const endTime = new Date(quiz.endTime).getTime();
-        return currentTime >= startTime && currentTime <= endTime;
-      });
-
-      setQuizzes(availableQuizzes);
+      setQuizzes(attemptableQuizzes); // Set the filtered quizzes to state
     } catch (error) {
       console.error("Error fetching quizzes:", error);
     }
@@ -240,47 +237,15 @@ const Quiz = () => {
         {quizzes.length === 0 ? (
           <p className="text-gray-500">No available quizzes at the moment.</p>
         ) : (
-          <ul className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quizzes.map((quiz) => (
-              <li key={quiz._id} className="border p-3 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold">{quiz.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      Time: {new Date(quiz.startTime).toLocaleString()} -{" "}
-                      {new Date(quiz.endTime).toLocaleString()}
-                    </p>
-                  </div>
-                  <button
-                    disabled={
-                      quiz.isAttempted || quiz.registrationStatus !== "accepted"
-                    }
-                    className={`px-4 py-2 rounded ${
-                      quiz.registrationStatus === "pending"
-                        ? "bg-yellow-400 cursor-not-allowed"
-                        : quiz.registrationStatus === "rejected" ||
-                          quiz.registrationStatus === "not_registered"
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : quiz.isAttempted
-                        ? "bg-red-400 cursor-not-allowed"
-                        : "bg-blue-500 text-white"
-                    }`}
-                    onClick={() => handleQuizSelect(quiz)}
-                  >
-                    {quiz.isAttempted
-                      ? "Attempted"
-                      : quiz.registrationStatus === "pending"
-                      ? "Pending Approval"
-                      : quiz.registrationStatus === "rejected"
-                      ? "Rejected"
-                      : quiz.registrationStatus === "not_registered"
-                      ? "Not Registered"
-                      : "Start Quiz"}
-                  </button>
-                </div>
-              </li>
+              <QuizCard
+                key={quiz._id}
+                quiz={quiz}
+                onSelect={handleQuizSelect}
+              />
             ))}
-          </ul>
+          </div>
         )}
 
         {selectedQuiz && (

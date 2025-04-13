@@ -69,9 +69,7 @@ const TeacherDashboard = () => {
       }
     };
 
-    if (activeTab === "assign-section") {
-      fetchData();
-    }
+    fetchData();
   }, [activeTab]);
 
   const fetchAllStudents = async () => {
@@ -167,11 +165,18 @@ const TeacherDashboard = () => {
           `http://localhost:5000/teacher/quiz/${selectedQuiz}`
         );
 
+        // Check if the response status is OK
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          const message = `HTTP error! status: ${res.status}`;
+          console.error(message);
+          setError(message); // Set error state
+          return; // Don't proceed if response is not ok
         }
 
+        // Parse the response data
         const data = await res.json();
+
+        // Set the quiz details into state (after formatting dates)
         setEditQuiz({
           ...data,
           startTime: formatDateTimeForInput(data.startTime),
@@ -507,9 +512,7 @@ const TeacherDashboard = () => {
           </button>
         </div>
       </div>
-
       {isLoading && <div className="loading">Loading...</div>}
-
       {activeTab === "assign-section" && (
         <div className="assign-section">
           {/* Section Assignment */}
@@ -669,7 +672,6 @@ const TeacherDashboard = () => {
           </div>
         </div>
       )}
-
       {activeTab === "quizzes" && (
         <div className="create-quiz-form">
           <h3>Create New Quiz</h3>
@@ -809,7 +811,6 @@ const TeacherDashboard = () => {
           </button>
         </div>
       )}
-
       {activeTab === "editQuizzes" && (
         <div className="quiz-form">
           <h3>Edit Quiz</h3>
@@ -1024,7 +1025,6 @@ const TeacherDashboard = () => {
           )}
         </div>
       )}
-
       {activeTab === "results" && (
         <div className="view-results">
           <h2>View Quiz Results</h2>
@@ -1043,7 +1043,9 @@ const TeacherDashboard = () => {
             </select>
           </div>
 
-          {results.length > 0 && (
+          {results.length === 0 ? (
+            <p>No submitted Attempts.</p>
+          ) : (
             <div className="results-table">
               <table>
                 <thead>

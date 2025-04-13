@@ -2,8 +2,6 @@ const express = require("express");
 const User = require("../models/User");
 const Quiz = require("../models/Quiz"); // Assuming you have a Quiz model
 const Result = require("../models/StudentResponse"); // Assuming you have a Result model
-// const register = require("../models/StudentRegistration"); // Assuming you have a register model
-// const router = express.Router();
 const router = express.Router();
 
 const StudentRegistration = require("../models/StudentRegistration");

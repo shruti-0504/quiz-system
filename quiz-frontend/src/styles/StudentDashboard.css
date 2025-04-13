@@ -88,3 +88,29 @@ li button {
 li button:hover {
     background-color: #218838;
 }
+.quiz-card {
+    background-color: #1e1e2f;
+    color: white;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+  }
+  
+  .quiz-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .quiz-card h4 {
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .quiz-card p {
+    margin: 0.25rem 0;
+  }
+  
+  .quiz-card-action {
+    margin-top: 0.5rem;
+  }
+  
