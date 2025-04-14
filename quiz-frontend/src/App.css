@@ -1,9 +1,10 @@
 .App {
   text-align: center;
 }
-body.dark-mode {
+body {
+  &.dark-mode{
   background-color: #121212;
-  color: #ffffff;
+  color: #ffffff;}
 }
 .dark-mode-toggle {
   width: 40px;
@@ -13,14 +14,16 @@ body.dark-mode {
   background-color: transparent;
   border: 1px solid #ccc;
   cursor: pointer;
+  color:#000;
   display: flex;
   justify-content: center;
-  align-items: center;  /* This centers the content */
+  align-items: center;
   transition: all 0.3s ease;
 }
 
 .dark-mode-toggle:hover {
   background-color: #eee;
+  color:#000;
 }
 
 

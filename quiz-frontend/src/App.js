@@ -20,6 +20,12 @@ function App() {
           {}
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/quiz/:id" element={<Quiz />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/TeacherDash" element={<TeacherDashboard />} />
+            <Route path="/StudentDash" element={<StudentDashboard />} />
+
+            {/* <Route path="/" element={<Home />} />
             <Route
               path="/quiz/:id"
               element={userRole === "student" ? <Quiz /> : <Navigate to="/" />}
@@ -48,7 +54,7 @@ function App() {
                   <Navigate to="/" />
                 )
               }
-            />
+            /> */}
           </Routes>
         </Router>
       }

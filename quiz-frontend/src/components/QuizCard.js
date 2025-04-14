@@ -1,53 +1,50 @@
 import React from "react";
-import { Link } from "react-router-dom";
 
 const QuizCard = ({ quiz, onSelect }) => {
-  const quizStatus = () => {
+  const getAction = () => {
     if (quiz.isAttempted) {
-      return "bg-red-400 cursor-not-allowed";
+      return (
+        <button
+          className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
+          disabled
+        >
+          Attempted
+        </button>
+      );
     }
     if (quiz.registrationStatus === "pending") {
-      return "bg-yellow-400 cursor-not-allowed";
+      return (
+        <span className="text-orange-500 font-semibold">Pending Approval</span>
+      );
     }
-    if (
-      quiz.registrationStatus === "rejected" ||
-      quiz.registrationStatus === "not_registered"
-    ) {
-      return "bg-gray-400 cursor-not-allowed";
+    if (quiz.registrationStatus === "rejected") {
+      return <span className="text-red-500 font-semibold">Rejected</span>;
     }
-    return "bg-blue-500 text-white";
+    if (quiz.registrationStatus === "not_registered") {
+      return (
+        <span className="text-gray-500 font-semibold">Not Registered</span>
+      );
+    }
+    return (
+      <button
+        className="bg-blue-600 text-white py-1 px-4 rounded hover:bg-blue-700 transition"
+        onClick={() => onSelect(quiz)}
+      >
+        Start Quiz
+      </button>
+    );
   };
 
   return (
-    <div className="border p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="font-semibold text-lg">{quiz.title}</h3>
-          <p className="text-sm text-gray-500">
-            Time: {new Date(quiz.startTime).toLocaleString()} -{" "}
-            {new Date(quiz.endTime).toLocaleString()}
-          </p>
-        </div>
-        <div>
-          <span
-            className={`px-4 py-2 rounded ${quizStatus()}`}
-            onClick={() => onSelect(quiz)}
-            disabled={
-              quiz.isAttempted || quiz.registrationStatus !== "accepted"
-            }
-          >
-            {quiz.isAttempted
-              ? "Attempted"
-              : quiz.registrationStatus === "pending"
-              ? "Pending Approval"
-              : quiz.registrationStatus === "rejected"
-              ? "Rejected"
-              : quiz.registrationStatus === "not_registered"
-              ? "Not Registered"
-              : "Start Quiz"}
-          </span>
-        </div>
-      </div>
+    <div className="bg-[#cbcbcb] text-black rounded-xl shadow-lg p-6 my-4 transition-transform hover:-translate-y-1">
+      <h4 className="text-lg font-semibold mb-2">{quiz.title}</h4>
+      <p className="text-sm">
+        <strong>Start:</strong> {new Date(quiz.startTime).toLocaleString()}
+      </p>
+      <p className="text-sm mb-2">
+        <strong>End:</strong> {new Date(quiz.endTime).toLocaleString()}
+      </p>
+      <div className="mt-3">{getAction()}</div>
     </div>
   );
 };

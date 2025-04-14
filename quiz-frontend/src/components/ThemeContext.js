@@ -26,6 +26,15 @@ export const ThemeProvider = ({ children }) => {
     });
   };
 
+  // ✅ Apply/remove body class based on mode
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
+  }, [darkMode]);
+
   const muiTheme = useMemo(
     () =>
       createTheme({

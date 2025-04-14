@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.css";
 import DarkModeToggle from "../components/DarkModeToggle";
+import TextField from "@mui/material/TextField";
 
 const Home = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,7 +18,6 @@ const Home = () => {
   const [otpExpiry, setOtpExpiry] = useState(120);
   const [isOtpExpired, setIsOtpExpired] = useState(false);
 
-  // Error States
   const [errors, setErrors] = useState({
     registrationNumber: "",
     password: "",
@@ -212,14 +212,29 @@ const Home = () => {
           <div className="register-form">
             {step === 1 ? (
               <>
-                <input
+                {/* <input
                   type="text"
                   placeholder="Name"
                   onChange={(e) => setName(e.target.value)}
                 />
+
                 <input
                   type="text"
                   placeholder="Registration Number"
+                  onChange={(e) => setRegistrationNumber(e.target.value)}
+                /> */}
+                <TextField
+                  id="outlined-basic"
+                  label="Name"
+                  variant="outlined"
+                  size="small"
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <TextField
+                  id="outlined-basic"
+                  label="Registration Number"
+                  variant="outlined"
+                  size="small"
                   onChange={(e) => setRegistrationNumber(e.target.value)}
                 />
                 {errors.registrationNumber && (
