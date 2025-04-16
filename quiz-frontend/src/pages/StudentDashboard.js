@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import "../styles/StudentDashboard.css";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Tabs,
+  Tab,
+  Divider,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+} from "@mui/material";
 import DarkModeToggle from "../components/DarkModeToggle";
 
 const StudentDashboard = () => {
@@ -97,6 +111,12 @@ const StudentDashboard = () => {
       alert(err.response?.data?.message || "Failed to register");
     }
   };
+  const [tabIndex, setTabIndex] = useState(0);
+
+  const handleTabChange = (_, newValue) => {
+    setTabIndex(newValue);
+  };
+
   const QuizCard = ({ quiz, onRegister, context }) => {
     const canAttempt =
       quiz.canAttempt &&
@@ -105,54 +125,72 @@ const StudentDashboard = () => {
 
     const handleActionClick = () => {
       if (onRegister) {
-        registerForQuiz(quiz);
+        onRegister(quiz);
       } else if (canAttempt) {
         window.location.href = "/quiz";
       }
     };
 
-    let actionButton = null;
+    let actionButton;
     if (quiz.registrationStatus === "not_registered") {
-      actionButton = <button onClick={handleActionClick}>Register</button>;
+      actionButton = (
+        <Button variant="contained" color="primary" onClick={handleActionClick}>
+          Register
+        </Button>
+      );
     } else if (quiz.registrationStatus === "pending") {
-      actionButton = <span style={{ color: "orange" }}>Pending Approval</span>;
+      actionButton = <Chip label="Pending Approval" color="warning" />;
     } else if (quiz.registrationStatus === "rejected") {
-      actionButton = <span style={{ color: "red" }}>Rejected</span>;
+      actionButton = <Chip label="Rejected" color="error" />;
     } else if (quiz.registrationStatus === "accepted") {
       if (canAttempt) {
-        actionButton = <button onClick={handleActionClick}>Attempt Now</button>;
+        actionButton = (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleActionClick}
+          >
+            Attempt Now
+          </Button>
+        );
       } else if (quiz.hasAttempted) {
-        actionButton = <button disabled>Attempted</button>;
+        actionButton = (
+          <Button variant="outlined" disabled>
+            Attempted
+          </Button>
+        );
       } else {
-        actionButton = <button disabled>Not Yet Started</button>;
+        actionButton = (
+          <Button variant="outlined" disabled>
+            Not Yet Started
+          </Button>
+        );
       }
     }
 
     const renderDeadline = () => {
       if (context === "available" && quiz.RegEndTime) {
-        return (
-          <p>
-            <strong>Registration Deadline:</strong>{" "}
-            {new Date(quiz.RegEndTime).toLocaleString()}
-          </p>
-        );
+        return `Registration Deadline: ${new Date(
+          quiz.RegEndTime
+        ).toLocaleString()}`;
       } else if (context === "registered" && quiz.endTime) {
-        return (
-          <p>
-            <strong>Attempt Deadline:</strong>{" "}
-            {new Date(quiz.endTime).toLocaleString()}
-          </p>
-        );
+        return `Attempt Deadline: ${new Date(quiz.endTime).toLocaleString()}`;
       }
       return null;
     };
 
     return (
-      <div className="quiz-card">
-        <h4>{quiz.title}</h4>
-        {renderDeadline()}
-        <div className="quiz-card-action">{actionButton}</div>
-      </div>
+      <Card sx={{ mb: 2, p: 2 }}>
+        <CardContent>
+          <Typography variant="h6">{quiz.title}</Typography>
+          {renderDeadline() && (
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              {renderDeadline()}
+            </Typography>
+          )}
+          <Box mt={2}>{actionButton}</Box>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -166,86 +204,141 @@ const StudentDashboard = () => {
   const attemptedQuizzes = quizzes.filter((q) => q.hasAttempted);
 
   return (
-    <div className="dashboard-container">
-      <div className="header-top">
-        <h1>Student Dashboard</h1>
+    <Box p={3}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h4">Student Dashboard</Typography>
         <DarkModeToggle />
-      </div>
+      </Stack>
 
-      <div className="nav-buttons">
+      <Stack direction="row" spacing={2} mb={2}>
         <Link to="/StudentDash">
-          <button>Dashboard</button>
+          <Button variant="outlined">Dashboard</Button>
         </Link>
         <Link to="/quiz">
-          <button>Quiz</button>
+          <Button variant="outlined">Quiz</Button>
         </Link>
-      </div>
+      </Stack>
 
-      <p>Section: {user.section || studentSection || "Not assigned yet"}</p>
+      <Typography variant="body1" mb={2}>
+        Section: {user.section || studentSection || "Not assigned yet"}
+      </Typography>
 
-      <h3>Enrolled Courses:</h3>
-      <ul>
-        {enrolledCourses.length > 0 ? (
-          enrolledCourses.map((course) => (
-            <li key={course._id}>
-              {course.courseName || "Unnamed Course"} (
-              {course.courseCode || "No Code"})
-              <button
-                onClick={() => updateCourse(course.courseCode, "unenroll")}
-              >
-                Unenroll
-              </button>
-            </li>
-          ))
-        ) : (
-          <p>Not enrolled in any courses.</p>
-        )}
-      </ul>
+      <Divider sx={{ my: 3 }} />
 
-      <h3>Available Quizzes (Open for Registration)</h3>
-      {registerableQuizzes.length === 0 ? (
-        <p>No quizzes currently open for registration.</p>
-      ) : (
-        <ul>
-          {registerableQuizzes.map((quiz) => (
-            <QuizCard
-              key={quiz._id}
-              quiz={quiz}
-              onRegister={registerForQuiz}
-              context="available"
-            />
-          ))}
-        </ul>
+      <Tabs value={tabIndex} onChange={handleTabChange} variant="scrollable">
+        <Tab label="Enrolled Courses" />
+        <Tab label="Available Courses" />
+        <Tab label="Available Quizzes" />
+        <Tab label="Registered Quizzes" />
+      </Tabs>
+
+      {tabIndex === 0 && (
+        <>
+          <Typography variant="h6" mt={2}>
+            Enrolled Courses:
+          </Typography>
+          <List>
+            {enrolledCourses.length > 0 ? (
+              enrolledCourses.map((course) => (
+                <ListItem
+                  key={course._id}
+                  secondaryAction={
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() =>
+                        updateCourse(course.courseCode, "unenroll")
+                      }
+                    >
+                      Unenroll
+                    </Button>
+                  }
+                >
+                  <ListItemText
+                    primary={course.courseName || "Unnamed Course"}
+                    secondary={`Code: ${course.courseCode || "N/A"}`}
+                  />
+                </ListItem>
+              ))
+            ) : (
+              <Typography>No enrolled courses.</Typography>
+            )}
+          </List>
+        </>
       )}
 
-      <h3>Registered Quizzes</h3>
-      {registeredQuizzes.length === 0 ? (
-        <p>You haven't registered for any quizzes.</p>
-      ) : (
-        <ul>
-          {registeredQuizzes.map((quiz) => (
-            <QuizCard key={quiz._id} quiz={quiz} context="registered" />
-          ))}
-        </ul>
+      {tabIndex === 1 && (
+        <>
+          <Typography variant="h6" mt={2}>
+            Available Courses:
+          </Typography>
+          <List>
+            {availableCourses.length > 0 ? (
+              availableCourses.map((course) => (
+                <ListItem
+                  key={course._id}
+                  secondaryAction={
+                    <Button
+                      variant="contained"
+                      onClick={() => updateCourse(course.courseCode, "enroll")}
+                    >
+                      Enroll
+                    </Button>
+                  }
+                >
+                  <ListItemText
+                    primary={course.courseName || "Unnamed Course"}
+                    secondary={`Code: ${course.courseCode || "N/A"}`}
+                  />
+                </ListItem>
+              ))
+            ) : (
+              <Typography>No available courses.</Typography>
+            )}
+          </List>
+        </>
       )}
 
-      <h3>Available Courses:</h3>
-      <ul>
-        {availableCourses.length > 0 ? (
-          availableCourses.map((course) => (
-            <li key={course._id}>
-              {course.courseName || "Unnamed Course"} (
-              {course.courseCode || "No Code"})
-              <button onClick={() => updateCourse(course.courseCode, "enroll")}>
-                Enroll
-              </button>
-            </li>
-          ))
-        ) : (
-          <p>No courses available.</p>
-        )}
-      </ul>
-    </div>
+      {tabIndex === 2 && (
+        <>
+          <Typography variant="h6" mt={2}>
+            Available Quizzes (Open for Registration)
+          </Typography>
+          {registerableQuizzes.length === 0 ? (
+            <Typography>No quizzes currently open for registration.</Typography>
+          ) : (
+            registerableQuizzes.map((quiz) => (
+              <QuizCard
+                key={quiz._id}
+                quiz={quiz}
+                onRegister={registerForQuiz}
+                context="available"
+              />
+            ))
+          )}
+        </>
+      )}
+
+      {tabIndex === 3 && (
+        <>
+          <Typography variant="h6" mt={2}>
+            Registered Quizzes
+          </Typography>
+          {registeredQuizzes.length === 0 ? (
+            <Typography>You haven't registered for any quizzes.</Typography>
+          ) : (
+            registeredQuizzes.map((quiz) => (
+              <QuizCard key={quiz._id} quiz={quiz} context="registered" />
+            ))
+          )}
+        </>
+      )}
+    </Box>
   );
 };
 

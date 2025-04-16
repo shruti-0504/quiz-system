@@ -1,8 +1,20 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Grid,
+  TextField,
+  CircularProgress,
+  Paper,
+} from "@mui/material";
 import DarkModeToggle from "../components/DarkModeToggle";
+import { useTheme } from "../components/ThemeContext.js"; // adjust the path if needed
+
 import { useParams } from "react-router-dom";
-import QuizCard from "../components/QuizCard";
 let tabSwitchCount = 0;
 let quizForceSubmitted = false; // renamed for clarity
 
@@ -46,6 +58,7 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [markedForReview, setMarkedForReview] = useState({});
   const hasSubmitted = useRef(false);
+  const { darkMode } = useTheme();
 
   useEffect(() => {
     fetchAvailableQuizzes();
@@ -214,6 +227,78 @@ const Quiz = () => {
     };
   }, [quiz]);
 
+  const QuizCard = ({ quiz, onSelect }) => {
+    const getAction = () => {
+      if (quiz.isAttempted) {
+        return (
+          <Button variant="contained" color="inherit" disabled>
+            Attempted
+          </Button>
+        );
+      }
+      if (quiz.registrationStatus === "pending") {
+        return (
+          <Typography color="warning.main" fontWeight="bold">
+            Pending Approval
+          </Typography>
+        );
+      }
+      if (quiz.registrationStatus === "rejected") {
+        return (
+          <Typography color="error.main" fontWeight="bold">
+            Rejected
+          </Typography>
+        );
+      }
+      if (quiz.registrationStatus === "not_registered") {
+        return (
+          <Typography color="text.disabled" fontWeight="bold">
+            Not Registered
+          </Typography>
+        );
+      }
+      return (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => onSelect(quiz)}
+        >
+          Start Quiz
+        </Button>
+      );
+    };
+
+    return (
+      <Card
+        sx={{
+          backgroundColor: darkMode ? "#1e1e1e" : "#cbcbcb",
+          color: darkMode ? "#fff" : "#000",
+          borderRadius: 3,
+          boxShadow: 3,
+          p: 3,
+          my: 2,
+          transition: "transform 0.2s",
+          "&:hover": {
+            transform: "translateY(-4px)",
+          },
+        }}
+      >
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {quiz.title}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Start:</strong> {new Date(quiz.startTime).toLocaleString()}
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            <strong>End:</strong> {new Date(quiz.endTime).toLocaleString()}
+          </Typography>
+          <Box mt={2}>{getAction()}</Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
   function dotStyle(color) {
     return {
       display: "inline-block",
@@ -228,94 +313,120 @@ const Quiz = () => {
 
   if (!quiz) {
     return (
-      <div className="container mx-auto p-4">
-        <div className="header-top">
-          <h1>Quiz Portal</h1>
+      <Box p={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h4">Quiz Portal</Typography>
           <DarkModeToggle />
-        </div>
-        <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
+        </Box>
+        <Typography variant="h5" mt={4} mb={2}>
+          Available Quizzes
+        </Typography>
+
         {quizzes.length === 0 ? (
-          <p className="text-gray-500">No available quizzes at the moment.</p>
+          <Typography color="text.secondary">
+            No available quizzes at the moment.
+          </Typography>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Grid container spacing={3}>
             {quizzes.map((quiz) => (
-              <QuizCard
-                key={quiz._id}
-                quiz={quiz}
-                onSelect={handleQuizSelect}
-              />
+              <Grid item xs={12} md={6} lg={4} key={quiz._id}>
+                <QuizCard quiz={quiz} onSelect={handleQuizSelect} />
+              </Grid>
             ))}
-          </div>
+          </Grid>
         )}
 
         {selectedQuiz && (
-          <div className="mt-4 p-4 border rounded-lg bg-gray-100">
-            <h3 className="text-lg font-bold mb-2">Enter Quiz Password</h3>
-            <input
+          <Paper sx={{ mt: 4, p: 3 }} elevation={3}>
+            <Typography variant="h6" fontWeight="bold" mb={2}>
+              Enter Quiz Password
+            </Typography>
+            <TextField
+              fullWidth
               type="password"
-              className="border p-2 w-full"
+              label="Enter password"
+              variant="outlined"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
             />
-            <button
-              className="mt-2 bg-green-500 text-white px-4 py-2 rounded"
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ mt: 2 }}
               onClick={handlePasswordSubmit}
             >
               Start Quiz
-            </button>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
-          </div>
+            </Button>
+            {error && (
+              <Typography color="error" mt={2}>
+                {error}
+              </Typography>
+            )}
+          </Paper>
         )}
-      </div>
+      </Box>
     );
   }
 
-  // ✅ Proper JSX return starts here
   return (
-    <div style={{ display: "flex" }}>
-      {/* Right Panel - Main Quiz Content */}
-      <div style={{ flex: 1 }}>
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
+    <Box display="flex" p={3}>
+      {/* Left Panel - Quiz Content */}
+      <Box flex={1}>
+        {loading && <CircularProgress />}
+        {error && (
+          <Typography color="error" mb={2}>
+            {error}
+          </Typography>
+        )}
         {quiz && (
-          <div>
-            <div style={{ marginBottom: "16px" }}>
-              <div className="header-top">
-                <h2>{quiz.title}</h2>
-                <DarkModeToggle />
-              </div>
+          <Box>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography variant="h5" fontWeight="bold">
+                {quiz.title}
+              </Typography>
+              <DarkModeToggle />
+            </Box>
 
-              <p
-                style={{
-                  fontWeight: "bold",
-                  color: timeLeft <= 60000 ? "red" : "black",
-                }}
-              >
-                ⏳ Time Left: {Math.floor(timeLeft / 60000)}m{" "}
-                {Math.floor((timeLeft % 60000) / 1000)}s
-              </p>
-            </div>
+            <Typography
+              variant="subtitle1"
+              fontWeight="bold"
+              color={timeLeft <= 60000 ? "error.main" : "text.primary"}
+              mb={2}
+            >
+              ⏳ Time Left: {Math.floor(timeLeft / 60000)}m{" "}
+              {Math.floor((timeLeft % 60000) / 1000)}s
+            </Typography>
 
-            <div>
-              <h4>{quiz.questions[currentIndex].questionText}</h4>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {quiz.questions[currentIndex].questionText}
+              </Typography>
               {quiz.questions[currentIndex].options.map((option, optIndex) => (
-                <label
-                  key={optIndex}
-                  style={{ display: "block", margin: "6px 0" }}
-                >
-                  <input
-                    type="radio"
-                    name={`q${currentIndex}`}
-                    value={optIndex}
-                    checked={answers[currentIndex] === optIndex}
-                    onChange={() => handleAnswerChange(currentIndex, optIndex)}
-                  />{" "}
-                  {option}
-                </label>
+                <Box key={optIndex} mb={1}>
+                  <label>
+                    <input
+                      type="radio"
+                      name={`q${currentIndex}`}
+                      value={optIndex}
+                      checked={answers[currentIndex] === optIndex}
+                      onChange={() =>
+                        handleAnswerChange(currentIndex, optIndex)
+                      }
+                    />{" "}
+                    {option}
+                  </label>
+                </Box>
               ))}
-            </div>
-            <button
+            </Box>
+
+            <Button
+              variant="outlined"
+              sx={{ mt: 2, mr: 2 }}
               onClick={() =>
                 setMarkedForReview((prev) => ({
                   ...prev,
@@ -326,96 +437,119 @@ const Quiz = () => {
               {markedForReview[currentIndex]
                 ? "Unmark Review"
                 : "Mark for Review"}
-            </button>
+            </Button>
 
-            <div style={{ marginTop: "12px" }}>
+            <Box mt={2}>
               {currentIndex > 0 &&
                 (!answers[currentIndex - 1] ||
                   markedForReview[currentIndex - 1]) && (
-                  <button onClick={() => setCurrentIndex(currentIndex - 1)}>
+                  <Button
+                    variant="contained"
+                    sx={{ mr: 1 }}
+                    onClick={() => setCurrentIndex(currentIndex - 1)}
+                  >
                     Previous
-                  </button>
+                  </Button>
                 )}
 
               {currentIndex < quiz.questions.length - 1 ? (
-                <button onClick={() => setCurrentIndex(currentIndex + 1)}>
+                <Button
+                  variant="contained"
+                  onClick={() => setCurrentIndex(currentIndex + 1)}
+                >
                   Next
-                </button>
+                </Button>
               ) : (
-                <button onClick={handleSubmit}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handleSubmit}
+                >
                   {loading ? "Submitting..." : "Submit"}
-                </button>
+                </Button>
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
-      </div>
-      {/* Left Panel - Sidebar */}
-      <div style={{ width: "150px", marginRight: "16px" }}>
+      </Box>
+      {/* Right Panel - Sidebar */}
+      <Box
+        sx={{
+          width: "250px", // increase width
+          ml: 2, // margin-left instead of margin-right
+        }}
+      >
         {quiz?.questions?.length === 0 ? (
-          <p>No questions available in this quiz.</p>
+          <Typography>No questions available in this quiz.</Typography>
         ) : (
-          quiz?.questions?.map((_, index) => {
-            let bgColor = "#ffffff"; // default
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fill, minmax(50px, 1fr))"
+            gap={1}
+          >
+            {quiz?.questions?.map((_, index) => {
+              let bgColor = "#ffffff";
+              let color = "#000";
+              if (markedForReview[index] && index in answers) {
+                bgColor = "#b19cd9";
+              } else if (markedForReview[index]) {
+                bgColor = "#ffb347";
+              } else if (index in answers) {
+                bgColor = "#90ee90";
+              } else if (index === currentIndex) {
+                bgColor = "#add8e6";
+              } else if (index < currentIndex) {
+                bgColor = "#fdd835";
+              }
 
-            if (markedForReview[index] && index in answers) {
-              bgColor = "#b19cd9"; // 💜 Purple for Answered + Marked for Review
-            } else if (markedForReview[index]) {
-              bgColor = "#ffb347"; // 🟧 Orange for Marked
-            } else if (index in answers) {
-              bgColor = "#90ee90"; // ✅ Green for Answered
-            } else if (index === currentIndex) {
-              bgColor = "#add8e6"; // 🟦 Light blue for current
-            } else if (index < currentIndex) {
-              bgColor = "#fdd835"; // 🟨 Yellow for visited but unanswered
-            }
-
-            return (
-              <div
-                key={index}
-                onClick={() => {
-                  const isUnanswered = !answers[index];
-                  const isMarked = markedForReview[index];
-                  if (index === currentIndex || isUnanswered || isMarked) {
-                    setCurrentIndex(index);
-                  }
-                }}
-                style={{
-                  padding: "8px",
-                  margin: "4px",
-                  backgroundColor: bgColor,
-                  borderRadius: "6px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-              >
-                Q{index + 1}
-              </div>
-            );
-          })
+              return (
+                <Box
+                  key={index}
+                  onClick={() => {
+                    const isUnanswered = !answers[index];
+                    const isMarked = markedForReview[index];
+                    if (index === currentIndex || isUnanswered || isMarked) {
+                      setCurrentIndex(index);
+                    }
+                  }}
+                  sx={{
+                    padding: "6px",
+                    backgroundColor: bgColor,
+                    color: color,
+                    borderRadius: "6px",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  Q{index + 1}
+                </Box>
+              );
+            })}
+          </Box>
         )}
 
         {/* Legend */}
-        <div style={{ marginTop: "16px", fontSize: "14px" }}>
-          <p>
+        <Box mt={3} fontSize="14px">
+          <Typography>
             <span style={dotStyle("#90ee90")}></span> Answered
-          </p>
-          <p>
+          </Typography>
+          <Typography>
             <span style={dotStyle("#ffb347")}></span> Marked for Review
-          </p>
-          <p>
+          </Typography>
+          <Typography>
             <span style={dotStyle("#b19cd9")}></span> Answered + Marked
-          </p>
-          <p>
+          </Typography>
+          <Typography>
             <span style={dotStyle("#fdd835")}></span> Visited but Unanswered
-          </p>
-          <p>
+          </Typography>
+          <Typography>
             <span style={dotStyle("#add8e6")}></span> Current Question
-          </p>
-        </div>
-      </div>
-    </div>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
