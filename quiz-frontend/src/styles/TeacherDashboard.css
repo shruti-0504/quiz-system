@@ -543,3 +543,262 @@ button:disabled {
   min-width: 150px; /* Add minimum width for cells */
   white-space: nowrap;
 }
+/* Update your existing .dashboard-header rules */
+.dashboard-header {
+  background-color: #3f51b5; /* Default Material UI primary blue */
+  color: white;
+  /* ... keep your other existing styles ... */
+}
+
+/* Dark mode header - darker blue/purple shade */
+body.dark-mode .dashboard-header {
+  background-color: #1a237e; /* Deep, rich blue */
+  /* Optional: subtle gradient for depth */
+  background-image: linear-gradient(to right, #1a237e, #283593);
+}
+
+/* Dark mode navigation buttons */
+body.dark-mode .navigation button {
+  background-color: #3949ab; /* Slightly lighter than header */
+}
+
+body.dark-mode .navigation button:hover {
+  background-color: #303f9f;
+}
+
+/* Active tab indicator */
+body.dark-mode .navigation button.active {
+  background-color: #303f9f;
+  box-shadow: 0 0 0 2px #7986cb;
+}
+
+
+body.dark-mode .dashboard-header {
+  background-color: #0d1536; /* Even darker blue */
+  background-image: linear-gradient(135deg, #0d1536 0%, #1a237e 100%);
+  border-bottom: 1px solid #303f9f; /* Subtle border */
+}
+
+body.dark-mode .dashboard-header h1 {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Navigation buttons with better contrast */
+body.dark-mode .navigation button {
+  background-color: rgba(63, 81, 181, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .navigation button:hover {
+  background-color: rgba(63, 81, 181, 0.9);
+}
+
+body.dark-mode .navigation button.active {
+  background-color: #303f9f;
+  border-color: #7986cb;
+}
+
+/* Base dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .teacher-dashboard {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+/* Text colors for dark mode */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode p {
+  color: #ffffff;
+}
+
+/* Dashboard Header */
+body.dark-mode .dashboard-header {
+  background-color: #1a237e; /* Darker shade of primary color */
+  color: #ffffff;
+}
+
+/* Navigation Buttons */
+body.dark-mode .navigation button {
+  background-color: #3949ab;
+  color: #ffffff;
+}
+
+body.dark-mode .navigation button:hover {
+  background-color: #303f9f;
+}
+
+/* Card and Section Styles */
+body.dark-mode .assign-section,
+body.dark-mode .section-assignment,
+body.dark-mode .student-approvals,
+body.dark-mode .manage-quizzes,
+body.dark-mode .create-quiz-form,
+body.dark-mode .results-view {
+  background-color: #2d2d2d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .student-card h3,
+body.dark-mode .quiz-card h3,
+body.dark-mode .section-assignment h2,
+body.dark-mode .student-approvals h2 {
+  color: #bb86fc; /* Purple accent for headers */
+}
+
+/* Table Styles */
+body.dark-mode .approvals-table,
+body.dark-mode .results-table table {
+  color: #e0e0e0;
+}
+
+body.dark-mode .approvals-table th,
+body.dark-mode .results-table th {
+  background-color: #1a237e;
+  color: #ffffff;
+}
+
+body.dark-mode .approvals-table tr:nth-child(even),
+body.dark-mode .results-table tr:nth-child(even) {
+  background-color: #2d2d2d;
+}
+
+body.dark-mode .approvals-table tr:hover,
+body.dark-mode .results-table tr:hover {
+  background-color: #383838;
+}
+
+/* Form Elements */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: #333333;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+body.dark-mode .select-dropdown {
+  background-color: #333333;
+  color: #ffffff;
+  border-color: #555555;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23ffffff' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+}
+
+/* Buttons */
+body.dark-mode .approve-btn {
+  background-color: #2e7d32; /* Darker green */
+}
+
+body.dark-mode .reject-btn {
+  background-color: #c62828; /* Darker red */
+}
+
+/* Quiz Cards */
+body.dark-mode .quiz-card {
+  background-color: #333333;
+  border-left-color: #bb86fc;
+}
+
+body.dark-mode .quiz-card p {
+  color: #b0b0b0;
+}
+
+/* Loading Indicator */
+body.dark-mode .loading {
+  color: #bb86fc;
+}
+
+/* Dark mode utility classes */
+body.dark-mode .divider {
+  border-color: #444444;
+}
+
+body.dark-mode .border {
+  border-color: #444444;
+}
+
+/* Dark mode transitions */
+body.dark-mode * {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure text remains readable in dark mode */
+body.dark-mode a {
+  color: #bb86fc;
+}
+
+body.dark-mode a:hover {
+  color: #9c64f4;
+}
+
+
+/* Dark Mode Toggle Button Styles */
+.dark-mode-toggle {
+  background: transparent !important; /* Remove default background */
+  border: none !important;
+  padding: 8px !important;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Remove the circle/focus ring */
+.dark-mode-toggle:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Icon colors */
+.dark-mode-toggle .MuiSvgIcon-root {
+  color: #ffffff; /* White icon in light mode */
+  font-size: 24px;
+}
+
+/* Dark mode icon color */
+body.dark-mode .dark-mode-toggle .MuiSvgIcon-root {
+  color: #ffffff; /* Light purple in dark mode */
+}
+
+/* Hover effects */
+.dark-mode-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* Remove ripple effect */
+.dark-mode-toggle .MuiTouchRipple-root {
+  display: none;
+}
+/* For custom toggle buttons */
+.dark-mode-toggle {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.dark-mode-toggle svg {
+  color: #ffffff;
+  transition: all 0.3s ease;
+  font-size: 24px;
+}
+
+body.dark-mode .dark-mode-toggle svg {
+  color: #ffffff;
+}
+
+.dark-mode-toggle:focus {
+  outline: none;
+}
+
+.dark-mode-toggle:hover svg {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+

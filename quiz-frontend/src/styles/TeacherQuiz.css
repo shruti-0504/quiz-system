@@ -125,3 +125,175 @@ hr {
     margin-top: 16px;
     margin-right: 16px; /* Adds space between the buttons */
 }
+
+/* Dark Mode - Questions Section */
+body.dark-mode .teacher-quiz-container {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  body.dark-mode h2 {
+    color: #ff4d4d; /* Brighter red for better visibility in dark mode */
+  }
+  
+  body.dark-mode .question-card {
+    background-color: #383838;
+    border-color: #444;
+  }
+  
+  body.dark-mode .question-card h4 {
+    color: #f0f0f0;
+  }
+  
+  /* Input fields in dark mode */
+  body.dark-mode input[type="text"],
+  body.dark-mode input[type="password"],
+  body.dark-mode input[type="number"],
+  body.dark-mode textarea,
+  body.dark-mode select {
+    background-color: #333;
+    color: #fff;
+    border-color: #555;
+  }
+  
+  body.dark-mode input:focus,
+  body.dark-mode textarea:focus,
+  body.dark-mode select:focus {
+    border-color: #ff4d4d;
+  }
+  
+  /* Radio buttons in dark mode */
+  body.dark-mode input[type="radio"] {
+    accent-color: #ff4d4d;
+  }
+  
+  /* Buttons in dark mode */
+  body.dark-mode button {
+    background-color: #d90429; /* Slightly brighter red */
+  }
+  
+  body.dark-mode button:hover {
+    background-color: #ff4d4d;
+  }
+  
+  /* Divider in dark mode */
+  body.dark-mode hr {
+    border-color: #ff4d4d;
+    opacity: 0.7;
+  }
+  
+  /* Messages in dark mode */
+  body.dark-mode .success-message {
+    color: #4caf50;
+  }
+  
+  body.dark-mode .error-message {
+    color: #f44336;
+  }
+  
+  /* Additional dark mode enhancements for question elements */
+  body.dark-mode .option-input {
+    background-color: #3d3d3d;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  
+  body.dark-mode .option-input:hover {
+    background-color: #444;
+  }
+  
+  /* Dark mode for button groups */
+  body.dark-mode .button-group .spaced-button {
+    background-color: #333;
+    border: 1px solid #555;
+    color: #fff;
+  }
+  
+  body.dark-mode .button-group .spaced-button:hover {
+    background-color: #444;
+    border-color: #666;
+  }
+  
+  /* Dark mode transitions */
+  body.dark-mode .question-card,
+  body.dark-mode input,
+  body.dark-mode button {
+    transition: all 0.3s ease;
+  }
+
+
+  /* ===== Original Button Styles ===== */
+button {
+    background-color: #3f51b5; /* Changed from #c70000 to MUI primary blue */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 200px;
+}
+
+button:hover {
+    background-color: #303f9f; /* Darker blue on hover */
+    transform: scale(1.05);
+}
+
+/* ===== Dark Mode Button Styles ===== */
+body.dark-mode button {
+    background-color: #3949ab; /* Slightly lighter blue for dark mode */
+}
+
+body.dark-mode button:hover {
+    background-color: #303f9f; /* Same hover color for consistency */
+}
+
+/* ===== Special Buttons (approve/reject) ===== */
+.approve-btn {
+    background-color: #4caf50; /* Keep green for approve */
+}
+
+.reject-btn {
+    background-color: #f44336; /* Keep red for reject */
+}
+
+body.dark-mode .approve-btn {
+    background-color: #2e7d32; /* Darker green for dark mode */
+}
+
+body.dark-mode .reject-btn {
+    background-color: #c62828; /* Darker red for dark mode */
+}
+
+/* ===== Button Groups ===== */
+body.dark-mode .button-group .spaced-button {
+    background-color: #3949ab; /* Matching dark mode button color */
+    border: none; /* Remove border if previously set */
+}
+
+body.dark-mode .button-group .spaced-button:hover {
+    background-color: #303f9f;
+}
+/* Add this to target the remove button specifically */
+.Button.startIcon .MuiButton-label {
+    color: white;
+  }
+  
+ /* ===== Dark Mode Button Text Color Fix ===== */
+body.dark-mode button {
+    color: white !important; /* Force white text in dark mode */
+}
+
+body.dark-mode button .MuiButton-label {
+    color: white !important; /* Specifically target Material-UI button text */
+}
+
+body.dark-mode .approve-btn,
+body.dark-mode .reject-btn,
+body.dark-mode .spaced-button {
+    color: white !important; /* Ensure special buttons have white text */
+}

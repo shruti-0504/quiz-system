@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/TeacherDashboard.css";
-// import "../styles/TeacherQuiz.css";
+import "../styles/TeacherQuiz.css";
 import DarkModeToggle from "../components/DarkModeToggle";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
