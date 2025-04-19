@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/TeacherDashboard.css";
 import "../styles/TeacherQuiz.css";
 import DarkModeToggle from "../components/DarkModeToggle";
-import Button from "@mui/material/Button";
+import {
+  Box,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Button,
+  Typography,
+  Stack,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const TeacherDashboard = () => {
@@ -15,9 +24,7 @@ const TeacherDashboard = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [results, setResults] = useState([]);
   const [activeTab, setActiveTab] = useState("assign-section");
-  const { id } = useParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
   const teacherId = localStorage.getItem("registrationNumber");
   const [error, setError] = useState(null);
   const [newQuiz, setNewQuiz] = useState({
@@ -357,7 +364,6 @@ const TeacherDashboard = () => {
 
       const data = await res.json();
       alert("Quiz updated successfully!");
-      setShowEditForm(false);
     } catch (err) {
       console.error("Quiz update error:", err);
       setError("Failed to update quiz. Please try again.");
@@ -676,361 +682,430 @@ const TeacherDashboard = () => {
       )}
       {activeTab === "quizzes" && (
         <div className="create-quiz-form">
-          <h3>Create New Quiz</h3>
-          <input
-            type="text"
-            placeholder="Quiz Title"
-            value={newQuiz.title}
-            onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="Course Code"
-            value={newQuiz.course}
-            onChange={(e) => setNewQuiz({ ...newQuiz, course: e.target.value })}
-          />
-          <select
-            value={newQuiz.section}
-            onChange={(e) =>
-              setNewQuiz({ ...newQuiz, section: e.target.value })
-            }
+          <Box
+            className="create-quiz-form"
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
-            <option value="">Select Section</option>
-            {sections.map((sec) => (
-              <option key={sec} value={sec}>
-                {sec}
-              </option>
-            ))}
-          </select>
-          <input type="text" value={newQuiz.teacherRegNo} readOnly disabled />
-          <input
-            type="text"
-            placeholder="Quiz Password"
-            value={newQuiz.password}
-            onChange={(e) =>
-              setNewQuiz({ ...newQuiz, password: e.target.value })
-            }
-          />
-          <h4 style={{ textAlign: "left" }}>📌 Quiz Registration Period</h4>
-          <input
-            type="datetime-local"
-            value={newQuiz.RegStartTime}
-            onChange={(e) =>
-              setNewQuiz({ ...newQuiz, RegStartTime: e.target.value })
-            }
-          />
-          <input
-            type="datetime-local"
-            value={newQuiz.RegEndTime}
-            onChange={(e) =>
-              setNewQuiz({ ...newQuiz, RegEndTime: e.target.value })
-            }
-          />
-          <h4 style={{ textAlign: "left" }}>🕐 Quiz Schedule</h4>
-          <input
-            type="datetime-local"
-            value={newQuiz.startTime}
-            onChange={(e) =>
-              setNewQuiz({
-                ...newQuiz,
-                startTime: e.target.value,
-                duration: validateDuration(
-                  newQuiz.duration,
-                  e.target.value,
-                  newQuiz.endTime
-                ),
-              })
-            }
-          />
-          <input
-            type="datetime-local"
-            value={newQuiz.endTime}
-            onChange={(e) =>
-              setNewQuiz({
-                ...newQuiz,
-                endTime: e.target.value,
-                duration: validateDuration(
-                  newQuiz.duration,
-                  newQuiz.startTime,
-                  e.target.value
-                ),
-              })
-            }
-          />
-          <input
-            type="number"
-            placeholder="Quiz Duration (in minutes)"
-            value={newQuiz.duration}
-            onChange={(e) =>
-              setNewQuiz({
-                ...newQuiz,
-                duration: validateDuration(
-                  e.target.value,
-                  newQuiz.startTime,
-                  newQuiz.endTime
-                ),
-              })
-            }
-          />
-          {newQuiz.questions.map((q, qIndex) => (
-            <div className="question-card" key={qIndex}>
-              <input
-                type="text"
-                placeholder={`Question ${qIndex + 1}`}
-                value={q.questionText}
-                onChange={(e) => updateQuestionText(qIndex, e.target.value)}
-              />
-              {q.options.map((opt, optIndex) => (
-                <input
-                  key={optIndex}
-                  type="text"
-                  placeholder={`Option ${optIndex + 1}`}
-                  value={opt}
-                  onChange={(e) =>
-                    updateOption(qIndex, optIndex, e.target.value)
-                  }
-                />
-              ))}
-              <label>Correct Option:</label>
-              <select
-                value={q.correctAnswer}
-                onChange={(e) => updateCorrectOption(qIndex, e.target.value)}
+            <Typography variant="h5">Create New Quiz</Typography>
+
+            <TextField
+              size="small"
+              label="Quiz Title"
+              value={newQuiz.title}
+              onChange={(e) =>
+                setNewQuiz({ ...newQuiz, title: e.target.value })
+              }
+            />
+
+            <TextField
+              size="small"
+              label="Course Code"
+              value={newQuiz.course}
+              onChange={(e) =>
+                setNewQuiz({ ...newQuiz, course: e.target.value })
+              }
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Section</InputLabel>
+              <Select
+                size="small"
+                value={newQuiz.section}
+                label="Section"
+                onChange={(e) =>
+                  setNewQuiz({ ...newQuiz, section: e.target.value })
+                }
               >
-                {q.options.map((_, optIndex) => (
-                  <option key={optIndex} value={optIndex}>
-                    {`Option ${optIndex + 1}`}
-                  </option>
+                {sections.map((sec) => (
+                  <MenuItem key={sec} value={sec}>
+                    {sec}
+                  </MenuItem>
                 ))}
-              </select>
-              <Button
-                startIcon={<DeleteIcon />}
-                variant="contained"
-                onClick={() => removeQuestion(qIndex)}
+              </Select>
+            </FormControl>
+
+            <TextField
+              size="small"
+              label="Teacher Reg No"
+              value={newQuiz.teacherRegNo}
+              disabled
+            />
+
+            <TextField
+              size="small"
+              label="Quiz Password"
+              value={newQuiz.password}
+              onChange={(e) =>
+                setNewQuiz({ ...newQuiz, password: e.target.value })
+              }
+            />
+
+            <Typography variant="body1">
+              {" "}
+              ⏰ Quiz Registration Period
+            </Typography>
+
+            <input
+              type="datetime-local"
+              value={newQuiz.RegStartTime}
+              onChange={(e) =>
+                setNewQuiz({ ...newQuiz, RegStartTime: e.target.value })
+              }
+            />
+
+            <input
+              type="datetime-local"
+              value={newQuiz.RegEndTime}
+              onChange={(e) =>
+                setNewQuiz({ ...newQuiz, RegEndTime: e.target.value })
+              }
+            />
+
+            <Typography variant="body1">🕐 Quiz Schedule</Typography>
+
+            <input
+              type="datetime-local"
+              value={newQuiz.startTime}
+              onChange={(e) =>
+                setNewQuiz({
+                  ...newQuiz,
+                  startTime: e.target.value,
+                  duration: validateDuration(
+                    newQuiz.duration,
+                    e.target.value,
+                    newQuiz.endTime
+                  ),
+                })
+              }
+            />
+
+            <input
+              type="datetime-local"
+              value={newQuiz.endTime}
+              onChange={(e) =>
+                setNewQuiz({
+                  ...newQuiz,
+                  endTime: e.target.value,
+                  duration: validateDuration(
+                    newQuiz.duration,
+                    newQuiz.startTime,
+                    e.target.value
+                  ),
+                })
+              }
+            />
+
+            <TextField
+              size="small"
+              label="Quiz Duration (in minutes)"
+              type="number"
+              value={newQuiz.duration}
+              onChange={(e) =>
+                setNewQuiz({
+                  ...newQuiz,
+                  duration: validateDuration(
+                    e.target.value,
+                    newQuiz.startTime,
+                    newQuiz.endTime
+                  ),
+                })
+              }
+            />
+
+            {newQuiz.questions.map((q, qIndex) => (
+              <Box
+                key={qIndex}
+                className="question-card"
+                sx={{ p: 2, border: "1px solid #ccc", borderRadius: 2 }}
               >
-                Remove
+                <Stack spacing={2.5}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    label={`Question ${qIndex + 1}`}
+                    value={q.questionText}
+                    onChange={(e) => updateQuestionText(qIndex, e.target.value)}
+                    sx={{ mb: 2 }}
+                  />
+
+                  {q.options.map((opt, optIndex) => (
+                    <TextField
+                      size="small"
+                      key={optIndex}
+                      label={`Option ${optIndex + 1}`}
+                      fullWidth
+                      value={opt}
+                      onChange={(e) =>
+                        updateOption(qIndex, optIndex, e.target.value)
+                      }
+                      sx={{ mb: 1 }}
+                    />
+                  ))}
+
+                  <FormControl fullWidth sx={{ mt: 1 }}>
+                    <InputLabel>Correct Option</InputLabel>
+                    <Select
+                      value={q.correctAnswer}
+                      label="Correct Option"
+                      size="small"
+                      onChange={(e) =>
+                        updateCorrectOption(qIndex, e.target.value)
+                      }
+                    >
+                      {q.options.map((_, optIndex) => (
+                        <MenuItem key={optIndex} value={optIndex}>
+                          Option {optIndex + 1}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+                <Button
+                  startIcon={<DeleteIcon />}
+                  color="error"
+                  variant="outlined"
+                  onClick={() => removeQuestion(qIndex)}
+                  sx={{
+                    color: "#fff",
+                    backgroundImage:
+                      "linear-gradient(to right,rgba(191, 1, 1, 0.79),rgba(168, 0, 0, 0.46))",
+                    mt: 1,
+                  }}
+                >
+                  Remove Question
+                </Button>
+              </Box>
+            ))}
+
+            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+              <Button variant="outlined" onClick={addQuestion}>
+                Add Question
               </Button>
-            </div>
-          ))}
-          <button className="spaced-button" onClick={addQuestion}>
-            Add Question
-          </button>
-          <button className="spaced-button" onClick={handleCreateQuiz}>
-            Submit Quiz
-          </button>
+              <Button variant="contained" onClick={handleCreateQuiz}>
+                Submit Quiz
+              </Button>
+              <Button variant="text" onClick={resetCreateForm}>
+                Reset Quiz
+              </Button>
+            </Box>
+          </Box>
         </div>
       )}
       {activeTab === "editQuizzes" && (
-        <div className="quiz-form">
-          <h3>Edit Quiz</h3>
+        <div className="create-quiz-form">
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Typography variant="h5">Edit Quiz</Typography>
 
-          <div className="form-group">
-            <label>Teacher Registration No:</label>
-            <input type="text" value={newQuiz.teacherRegNo} readOnly disabled />
-          </div>
+            <TextField
+              size="small"
+              label="Teacher Registration No"
+              value={newQuiz.teacherRegNo}
+              disabled
+              fullWidth
+            />
 
-          <div className="form-group">
-            <label>Select Quiz:</label>
-            <select
-              value={selectedQuiz}
-              onChange={(e) => setSelectedQuiz(e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="">
-                {isLoading
-                  ? "Loading quizzes..."
-                  : quizzes.length === 0
-                  ? "No quizzes found"
-                  : "Select a quiz"}
-              </option>
-              {quizzes.map((quiz) => (
-                <option key={quiz._id} value={quiz._id}>
-                  {quiz.title} ({quiz.course} - {quiz.section})
-                </option>
-              ))}
-            </select>
-          </div>
+            <FormControl fullWidth>
+              <InputLabel>Select Quiz</InputLabel>
+              <Select
+                value={selectedQuiz}
+                size="small"
+                label="Select Quiz"
+                onChange={(e) => setSelectedQuiz(e.target.value)}
+                disabled={isLoading}
+              >
+                <MenuItem value="">
+                  {isLoading
+                    ? "Loading quizzes..."
+                    : quizzes.length === 0
+                    ? "No quizzes found"
+                    : "Select a quiz"}
+                </MenuItem>
+                {quizzes.map((quiz) => (
+                  <MenuItem key={quiz._id} value={quiz._id}>
+                    {quiz.title} ({quiz.course} - {quiz.section})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          {editQuiz && (
-            <>
-              <div className="form-group">
-                <label>Quiz Title*:</label>
-                <input
-                  type="text"
+            {editQuiz && (
+              <>
+                <TextField
+                  size="small"
+                  label="Quiz Title"
                   value={editQuiz.title}
-                  // onChange={(e) =>
-                  //   setEditQuiz({ ...editQuiz, title: e.target.value })
-                  // }
                   disabled
+                  fullWidth
                 />
-              </div>
 
-              <div className="form-group">
-                <label>Section:</label>
-                <select
-                  value={editQuiz.section}
+                <FormControl fullWidth>
+                  <InputLabel>Section</InputLabel>
+                  <Select
+                    size="small"
+                    value={editQuiz.section}
+                    label="Section"
+                    onChange={(e) =>
+                      setEditQuiz({ ...editQuiz, section: e.target.value })
+                    }
+                  >
+                    <MenuItem value="">Select Section</MenuItem>
+                    {sections.map((sec) => (
+                      <MenuItem key={sec} value={sec}>
+                        {sec}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Typography variant="body1">⏰ Registration Period</Typography>
+                <input
+                  type="datetime-local"
+                  value={editQuiz.RegStartTime}
                   onChange={(e) =>
-                    setEditQuiz({ ...editQuiz, section: e.target.value })
+                    setEditQuiz({ ...editQuiz, RegStartTime: e.target.value })
                   }
-                >
-                  <option value="">Select Section</option>
-                  {sections.map((sec) => (
-                    <option key={sec} value={sec}>
-                      {sec}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                />
+                <input
+                  type="datetime-local"
+                  value={editQuiz.RegEndTime}
+                  onChange={(e) =>
+                    setEditQuiz({ ...editQuiz, RegEndTime: e.target.value })
+                  }
+                />
 
-              <div className="time-section">
-                <h4>Registration Period</h4>
-                <div className="form-group">
-                  <label>Start Time:</label>
-                  <input
-                    type="datetime-local"
-                    value={editQuiz.RegStartTime}
-                    onChange={(e) =>
-                      setEditQuiz({ ...editQuiz, RegStartTime: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label>End Time:</label>
-                  <input
-                    type="datetime-local"
-                    value={editQuiz.RegEndTime}
-                    onChange={(e) =>
-                      setEditQuiz({ ...editQuiz, RegEndTime: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
+                <Typography variant="body1"> 🕐 Quiz Schedule</Typography>
+                <input
+                  type="datetime-local"
+                  value={editQuiz.startTime}
+                  onChange={(e) =>
+                    setEditQuiz({
+                      ...editQuiz,
+                      startTime: e.target.value,
+                      duration: validateDuration(
+                        editQuiz.duration,
+                        e.target.value,
+                        editQuiz.endTime
+                      ),
+                    })
+                  }
+                />
+                <input
+                  type="datetime-local"
+                  value={editQuiz.endTime}
+                  onChange={(e) =>
+                    setEditQuiz({
+                      ...editQuiz,
+                      endTime: e.target.value,
+                      duration: validateDuration(
+                        editQuiz.duration,
+                        editQuiz.startTime,
+                        e.target.value
+                      ),
+                    })
+                  }
+                />
+                <TextField
+                  size="small"
+                  label="Duration (minutes)"
+                  type="number"
+                  value={isNaN(editQuiz.duration) ? "" : editQuiz.duration}
+                  onChange={(e) =>
+                    setEditQuiz({
+                      ...editQuiz,
+                      duration: validateDuration(
+                        e.target.value,
+                        editQuiz.startTime,
+                        editQuiz.endTime
+                      ),
+                    })
+                  }
+                  fullWidth
+                />
 
-              <div className="time-section">
-                <h4>Quiz Schedule</h4>
-                <div className="form-group">
-                  <label>Start Time:</label>
-                  <input
-                    type="datetime-local"
-                    value={editQuiz.startTime}
-                    onChange={(e) =>
-                      setEditQuiz({
-                        ...editQuiz,
-                        startTime: e.target.value,
-                        duration: validateDuration(
-                          editQuiz.duration,
-                          e.target.value,
-                          editQuiz.endTime
-                        ),
-                      })
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label>End Time:</label>
-                  <input
-                    type="datetime-local"
-                    value={editQuiz.endTime}
-                    onChange={(e) =>
-                      setEditQuiz({
-                        ...editQuiz,
-                        endTime: e.target.value,
-                        duration: validateDuration(
-                          editQuiz.duration,
-                          editQuiz.startTime,
-                          e.target.value
-                        ),
-                      })
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Duration (minutes)*:</label>
-                  <input
-                    type="number"
-                    value={isNaN(editQuiz.duration) ? "" : editQuiz.duration}
-                    onChange={(e) =>
-                      setEditQuiz({
-                        ...editQuiz,
-                        duration: validateDuration(
-                          e.target.value,
-                          editQuiz.startTime,
-                          editQuiz.endTime
-                        ),
-                      })
-                    }
-                  />
-                </div>
-              </div>
+                <Box>
+                  <Typography variant="h6">Questions</Typography>
+                  {editQuiz.questions.map((q, qIndex) => (
+                    <Box
+                      key={qIndex}
+                      className="question-card"
+                      sx={{ p: 2, border: "1px solid #ccc", borderRadius: 2 }}
+                    >
+                      <Stack spacing={2.5}>
+                        <TextField
+                          size="small"
+                          label={`Question ${qIndex + 1}`}
+                          fullWidth
+                          value={q.questionText}
+                          onChange={(e) =>
+                            updateEditQuestionText(qIndex, e.target.value)
+                          }
+                          sx={{ mb: 2 }}
+                        />
 
-              <div className="questions-section">
-                <h4>Questions</h4>
-                {editQuiz.questions.map((q, qIndex) => (
-                  <div className="question-card" key={qIndex}>
-                    <div className="form-group">
-                      <label>Question {qIndex + 1}:</label>
-                      <input
-                        type="text"
-                        value={q.questionText}
-                        onChange={(e) =>
-                          updateEditQuestionText(qIndex, e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <div className="options-group">
-                      {q.options.map((opt, optIndex) => (
-                        <div className="form-group" key={optIndex}>
-                          <label>Option {optIndex + 1}:</label>
-                          <input
-                            type="text"
+                        {q.options.map((opt, optIndex) => (
+                          <TextField
+                            size="small"
+                            key={optIndex}
+                            label={`Option ${optIndex + 1}`}
+                            fullWidth
                             value={opt}
                             onChange={(e) =>
                               updateEditOption(qIndex, optIndex, e.target.value)
                             }
+                            sx={{ mb: 1 }}
                           />
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Correct Option:</label>
-                      <select
-                        value={q.correctAnswer}
-                        onChange={(e) =>
-                          updateEditCorrectOption(qIndex, e.target.value)
-                        }
-                      >
-                        {q.options.map((_, optIndex) => (
-                          <option key={optIndex} value={optIndex}>
-                            Option {optIndex + 1}
-                          </option>
                         ))}
-                      </select>
-                    </div>
 
-                    <button
-                      className="remove-btn"
-                      onClick={() => removeEditQuestion(qIndex)}
-                    >
-                      Remove Question
-                    </button>
-                  </div>
-                ))}
+                        <FormControl fullWidth sx={{ mt: 1 }}>
+                          <InputLabel>Correct Option</InputLabel>
+                          <Select
+                            value={q.correctAnswer}
+                            label="Correct Option"
+                            size="small"
+                            onChange={(e) =>
+                              updateEditCorrectOption(qIndex, e.target.value)
+                            }
+                          >
+                            {q.options.map((_, optIndex) => (
+                              <MenuItem key={optIndex} value={optIndex}>
+                                Option {optIndex + 1}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Stack>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        sx={{
+                          color: "#fff",
+                          backgroundImage:
+                            "linear-gradient(to right,rgba(191, 1, 1, 0.79),rgba(168, 0, 0, 0.46))",
+                          mt: 1,
+                        }}
+                        onClick={() => removeEditQuestion(qIndex)}
+                      >
+                        Remove Question
+                      </Button>
+                    </Box>
+                  ))}
+                  <Button variant="outlined" onClick={addEditQuestion}>
+                    Add Question
+                  </Button>
+                </Box>
 
-                <button className="add-btn" onClick={addEditQuestion}>
-                  Add Question
-                </button>
-              </div>
-
-              <button
-                className="submit-btn"
-                onClick={handleUpdateQuiz}
-                // disabled={isLoading}
-              >
-                {isLoading ? "Updating..." : "Update Quiz"}
-              </button>
-            </>
-          )}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleUpdateQuiz}
+                  sx={{ mt: 2 }}
+                >
+                  {isLoading ? "Updating..." : "Update Quiz"}
+                </Button>
+              </>
+            )}
+          </Box>
         </div>
       )}
       {activeTab === "results" && (

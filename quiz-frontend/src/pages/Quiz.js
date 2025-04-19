@@ -1,16 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Box,
-  Grid,
-  TextField,
-  CircularProgress,
-  Paper,
-} from "@mui/material";
+import { Typography, Button, Box, CircularProgress } from "@mui/material";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useTheme } from "../components/ThemeContext.js"; // adjust the path if needed
 
@@ -46,8 +36,6 @@ const Quiz = () => {
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
   const [quizzes, setQuizzes] = useState([]);
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const [password, setPassword] = useState("");
   const [answers, setAnswers] = useState({});
   const answersRef = useRef({});
   const [loading, setLoading] = useState(false);
@@ -77,31 +65,6 @@ const Quiz = () => {
       setQuizzes(attemptableQuizzes); // Set the filtered quizzes to state
     } catch (error) {
       console.error("Error fetching quizzes:", error);
-    }
-  };
-
-  const handleQuizSelect = (quiz) => {
-    if (quiz.isAttempted) {
-      setError("You have already attempted this quiz.");
-      return;
-    }
-    setSelectedQuiz(quiz);
-  };
-
-  const handlePasswordSubmit = async () => {
-    try {
-      const response = await axios.post(
-        `http://localhost:5000/student/verify-quiz/${selectedQuiz._id}`,
-        { password }
-      );
-
-      if (response.data.success) {
-        window.location.href = `/quiz/${selectedQuiz._id}`;
-      } else {
-        setError("Incorrect password. Try again.");
-      }
-    } catch (error) {
-      setError("Failed to verify password. Try again.");
     }
   };
 
@@ -209,6 +172,7 @@ const Quiz = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentIndex]);
+
   useEffect(() => {
     if (!quiz || quizForceSubmitted) return;
 
@@ -227,78 +191,6 @@ const Quiz = () => {
     };
   }, [quiz]);
 
-  const QuizCard = ({ quiz, onSelect }) => {
-    const getAction = () => {
-      if (quiz.isAttempted) {
-        return (
-          <Button variant="contained" color="inherit" disabled>
-            Attempted
-          </Button>
-        );
-      }
-      if (quiz.registrationStatus === "pending") {
-        return (
-          <Typography color="warning.main" fontWeight="bold">
-            Pending Approval
-          </Typography>
-        );
-      }
-      if (quiz.registrationStatus === "rejected") {
-        return (
-          <Typography color="error.main" fontWeight="bold">
-            Rejected
-          </Typography>
-        );
-      }
-      if (quiz.registrationStatus === "not_registered") {
-        return (
-          <Typography color="text.disabled" fontWeight="bold">
-            Not Registered
-          </Typography>
-        );
-      }
-      return (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => onSelect(quiz)}
-        >
-          Start Quiz
-        </Button>
-      );
-    };
-
-    return (
-      <Card
-        sx={{
-          backgroundColor: darkMode ? "#1e1e1e" : "#cbcbcb",
-          color: darkMode ? "#fff" : "#000",
-          borderRadius: 3,
-          boxShadow: 3,
-          p: 3,
-          my: 2,
-          transition: "transform 0.2s",
-          "&:hover": {
-            transform: "translateY(-4px)",
-          },
-        }}
-      >
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {quiz.title}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Start:</strong> {new Date(quiz.startTime).toLocaleString()}
-          </Typography>
-          <Typography variant="body2" gutterBottom>
-            <strong>End:</strong> {new Date(quiz.endTime).toLocaleString()}
-          </Typography>
-          <Box mt={2}>{getAction()}</Box>
-        </CardContent>
-      </Card>
-    );
-  };
-
   function dotStyle(color) {
     return {
       display: "inline-block",
@@ -310,64 +202,6 @@ const Quiz = () => {
       verticalAlign: "middle",
     };
   }
-
-  if (!quiz) {
-    return (
-      <Box p={4}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4">Quiz Portal</Typography>
-          <DarkModeToggle />
-        </Box>
-        <Typography variant="h5" mt={4} mb={2}>
-          Available Quizzes
-        </Typography>
-
-        {quizzes.length === 0 ? (
-          <Typography color="text.secondary">
-            No available quizzes at the moment.
-          </Typography>
-        ) : (
-          <Grid container spacing={3}>
-            {quizzes.map((quiz) => (
-              <Grid item xs={12} md={6} lg={4} key={quiz._id}>
-                <QuizCard quiz={quiz} onSelect={handleQuizSelect} />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-
-        {selectedQuiz && (
-          <Paper sx={{ mt: 4, p: 3 }} elevation={3}>
-            <Typography variant="h6" fontWeight="bold" mb={2}>
-              Enter Quiz Password
-            </Typography>
-            <TextField
-              fullWidth
-              type="password"
-              label="Enter password"
-              variant="outlined"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              variant="contained"
-              color="success"
-              sx={{ mt: 2 }}
-              onClick={handlePasswordSubmit}
-            >
-              Start Quiz
-            </Button>
-            {error && (
-              <Typography color="error" mt={2}>
-                {error}
-              </Typography>
-            )}
-          </Paper>
-        )}
-      </Box>
-    );
-  }
-
   return (
     <Box display="flex" p={3}>
       {/* Left Panel - Quiz Content */}
@@ -385,6 +219,22 @@ const Quiz = () => {
               justifyContent="space-between"
               alignItems="center"
               mb={2}
+              sx={{
+                backgroundColor: "#3f51b5",
+                color: "white",
+                padding: "20px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                textAlign: "center",
+
+                // Manually target dark mode class on body
+                "@media (prefers-color-scheme: dark), body.dark-mode &": {
+                  backgroundColor: "#1a237e",
+                  backgroundImage:
+                    "linear-gradient(to right, #1a237e, #283593)",
+                },
+              }}
             >
               <Typography variant="h5" fontWeight="bold">
                 {quiz.title}
