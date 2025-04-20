@@ -336,7 +336,7 @@ const StudentDashboard = () => {
                               updateCourse(course.courseCode, "unenroll")
                             }
                           >
-                            Unenroll
+                            Withdraw
                           </Button>
                         }
                       >
