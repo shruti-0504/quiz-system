@@ -567,27 +567,29 @@ const TeacherDashboard = () => {
 
             <div className="quiz-selection-container">
               {/* <label htmlFor="quizTitle">Select Quiz: </label> */}
-              <select
-                id="quizTitle"
-                value={quizTitle}
-                onChange={(e) => {
-                  setQuizTitle(e.target.value);
-                }}
-                className="quiz-dropdown"
-              >
-                <option value="">
-                  {isLoading
-                    ? "Loading quizzes..."
-                    : quizzes.length === 0
-                    ? "No quizzes found"
-                    : "-- Select Quiz --"}
-                </option>
-                {quizzes.map((quiz) => (
-                  <option key={quiz._id} value={quiz.title}>
-                    {quiz.title} ({quiz.course} - {quiz.section})
-                  </option>
-                ))}
-              </select>
+              <FormControl fullWidth>
+                <InputLabel>Select Quiz</InputLabel>
+                <Select
+                  value={selectedQuiz}
+                  size="small"
+                  label="Select Quiz"
+                  onChange={(e) => setQuizTitle(e.target.value)}
+                  disabled={isLoading}
+                >
+                  <MenuItem value="">
+                    {isLoading
+                      ? "Loading quizzes..."
+                      : quizzes.length === 0
+                      ? "No quizzes found"
+                      : "Select a quiz"}
+                  </MenuItem>
+                  {quizzes.map((quiz) => (
+                    <MenuItem key={quiz._id} value={quiz.title}>
+                      {quiz.title} ({quiz.course} - {quiz.section})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </div>
 
             {isLoading ? (
@@ -866,10 +868,12 @@ const TeacherDashboard = () => {
                   variant="outlined"
                   onClick={() => removeQuestion(qIndex)}
                   sx={{
-                    color: "#fff",
-                    backgroundImage:
-                      "linear-gradient(to right,rgba(191, 1, 1, 0.79),rgba(168, 0, 0, 0.46))",
                     mt: 1,
+                    "&:hover": {
+                      backgroundColor: "#ffebee", // light red shade for hover
+                      borderColor: "#f44336", // optional: keep border on hover
+                      color: "#d32f2f", // optional: darken text on hover
+                    },
                   }}
                 >
                   Remove Question
@@ -1079,10 +1083,12 @@ const TeacherDashboard = () => {
                         color="error"
                         startIcon={<DeleteIcon />}
                         sx={{
-                          color: "#fff",
-                          backgroundImage:
-                            "linear-gradient(to right,rgba(191, 1, 1, 0.79),rgba(168, 0, 0, 0.46))",
                           mt: 1,
+                          "&:hover": {
+                            backgroundColor: "#ffebee", // light red shade for hover
+                            borderColor: "#f44336", // optional: keep border on hover
+                            color: "#d32f2f", // optional: darken text on hover
+                          },
                         }}
                         onClick={() => removeEditQuestion(qIndex)}
                       >
@@ -1112,20 +1118,29 @@ const TeacherDashboard = () => {
         <div className="view-results">
           <h2>View Quiz Results</h2>
 
-          <div className="quiz-selection">
-            <select
-              value={selectedQuiz || ""}
+          <FormControl fullWidth sx={{ marginBottom: 2 }}>
+            <InputLabel>Select Quiz</InputLabel>
+            <Select
+              value={selectedQuiz}
+              size="small"
+              label="Select Quiz"
               onChange={(e) => setSelectedQuiz(e.target.value)}
+              disabled={isLoading}
             >
-              <option value="">Select a Quiz</option>
+              <MenuItem value="">
+                {isLoading
+                  ? "Loading quizzes..."
+                  : quizzes.length === 0
+                  ? "No quizzes found"
+                  : "Select a quiz"}
+              </MenuItem>
               {quizzes.map((quiz) => (
-                <option key={quiz.title} value={quiz.title}>
-                  {quiz.title}
-                </option>
+                <MenuItem key={quiz.title} value={quiz.title}>
+                  {quiz.title} ({quiz.course} - {quiz.section})
+                </MenuItem>
               ))}
-            </select>
-          </div>
-
+            </Select>
+          </FormControl>
           {results.length === 0 ? (
             <p>No submitted Attempts.</p>
           ) : (

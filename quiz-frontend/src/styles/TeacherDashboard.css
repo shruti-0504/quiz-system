@@ -307,6 +307,7 @@ button {
 
 button:disabled {
   opacity: 0.6;
+
   cursor: not-allowed;
 }
 
@@ -755,7 +756,7 @@ body.dark-mode a:hover {
 
 /* Icon colors */
 .dark-mode-toggle .MuiSvgIcon-root {
-  color: #ffffff; /* White icon in light mode */
+  color: #0f1666; /* White icon in light mode */
   font-size: 24px;
 }
 

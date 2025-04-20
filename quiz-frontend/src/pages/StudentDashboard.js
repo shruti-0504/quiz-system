@@ -102,6 +102,7 @@ const StudentDashboard = () => {
       isLoading(false);
     }
   };
+  console.log(quizzes);
 
   const registerForQuiz = async (quiz) => {
     try {
@@ -170,6 +171,10 @@ const StudentDashboard = () => {
           variant="contained"
           color="primary"
           onClick={() => onSelect(quiz)}
+          sx={{
+            color: "black",
+            backgroundColor: "rgba(0, 0, 0, 0.12)",
+          }}
         >
           Start Quiz
         </Button>
@@ -229,14 +234,35 @@ const StudentDashboard = () => {
     }
     setSelectedQuiz(quiz);
   };
+
+  console.log("=== All Quizzes ===");
+  quizzes.forEach((q) => {
+    console.log(q.title, {
+      hasAttempted: q.hasAttempted,
+      isRegistered: q.isRegistered,
+      appearsInAttempted: q.hasAttempted,
+      appearsInRegistered: q.isRegistered && !q.hasAttempted,
+    });
+  });
   const attemptableQuizzes = quizzes.filter(
     (q) => q.canAttempt && !q.hasAttempted
   );
   const registerableQuizzes = quizzes.filter(
     (q) => q.canRegister && q.registrationStatus === "not_registered"
   );
-  const registeredQuizzes = quizzes.filter((q) => q.isRegistered);
   const attemptedQuizzes = quizzes.filter((q) => q.hasAttempted);
+
+  const registeredQuizzes = quizzes.filter(
+    (q) => q.isRegistered && !q.hasAttempted
+  );
+  console.log(
+    "Attempted Quizzes:",
+    attemptedQuizzes.map((q) => q.title)
+  );
+  console.log(
+    "Registered Quizzes:",
+    registeredQuizzes.map((q) => q.title)
+  );
 
   return (
     <Box p={3}>
@@ -272,12 +298,13 @@ const StudentDashboard = () => {
             <Tabs
               value={tabIndex}
               onChange={handleTabChange}
-              variant="standard"
+              variant="scrollable"
             >
               <Tab label="Enrolled Courses" />
               <Tab label="Available Courses" />
               <Tab label="Available Quizzes" />
               <Tab label="Registered Quizzes" />
+              <Tab label="Attempted Quizzes" />
             </Tabs>
 
             {tabIndex === 0 && (
@@ -414,7 +441,7 @@ const StudentDashboard = () => {
                 <Typography variant="h6" mt={2}>
                   Attempted Quizzes
                 </Typography>
-                {registeredQuizzes.length === 0 ? (
+                {attemptedQuizzes.length === 0 ? (
                   <Typography>You haven't attempted any quizzes.</Typography>
                 ) : (
                   attemptedQuizzes.map((quiz) => (

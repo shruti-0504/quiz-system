@@ -1,8 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { Typography, Button, Box, CircularProgress } from "@mui/material";
 import DarkModeToggle from "../components/DarkModeToggle";
-import { useTheme } from "../components/ThemeContext.js"; // adjust the path if needed
 
 import { useParams } from "react-router-dom";
 let tabSwitchCount = 0;
@@ -35,38 +33,15 @@ const handleVisibilityChange = () => {
 const Quiz = () => {
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
-  const [quizzes, setQuizzes] = useState([]);
   const [answers, setAnswers] = useState({});
   const answersRef = useRef({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const studentId = localStorage.getItem("registrationNumber");
-  const studentSection = localStorage.getItem("section");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [markedForReview, setMarkedForReview] = useState({});
   const hasSubmitted = useRef(false);
-  const { darkMode } = useTheme();
-
-  useEffect(() => {
-    fetchAvailableQuizzes();
-  }, []);
-
-  const fetchAvailableQuizzes = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/student/quizzes?studentId=${studentId}&section=${studentSection}`
-      );
-      // Filter the quizzes after they are fetched
-      const attemptableQuizzes = response.data.filter(
-        (q) => q.canAttempt && !q.hasAttempted
-      );
-
-      setQuizzes(attemptableQuizzes); // Set the filtered quizzes to state
-    } catch (error) {
-      console.error("Error fetching quizzes:", error);
-    }
-  };
 
   // Fetch quiz
   useEffect(() => {
@@ -81,7 +56,6 @@ const Quiz = () => {
         const data = await res.json();
         if (res.ok) {
           setQuiz(data.quiz);
-          const startTime = new Date(data.quiz.startTime).getTime();
           const endTime = new Date(data.quiz.endTime).getTime();
           const now = new Date().getTime();
           const durationLeft = Math.max(endTime - now, 0);
