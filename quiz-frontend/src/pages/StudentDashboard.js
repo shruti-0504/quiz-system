@@ -125,18 +125,26 @@ const StudentDashboard = () => {
   const handleTabChange = (_, newValue) => {
     setTabIndex(newValue);
   };
-
+  console.log(quizzes);
   const QuizCard = ({ quiz, onSelect }) => {
     const getAction = () => {
       const now = new Date();
-
       const hasEnded = quiz.endTime && new Date(quiz.endTime) < now;
+      const hasStarted = quiz.startTime && new Date(quiz.startTime) <= now;
       const regClosed = quiz.RegEndTime && new Date(quiz.RegEndTime) < now;
 
-      if (quiz.isAttempted || hasEnded) {
+      if (quiz.hasAttempted) {
         return (
           <Button variant="contained" color="inherit" disabled>
             Attempted
+          </Button>
+        );
+      }
+
+      if (hasEnded) {
+        return (
+          <Button variant="contained" color="inherit" disabled>
+            Missed
           </Button>
         );
       }
@@ -165,19 +173,44 @@ const StudentDashboard = () => {
             </Typography>
           );
         }
+
+        // ✅ SHOW REGISTER BUTTON
+        return (
+          <Button
+            variant="contained"
+            sx={(theme) => ({
+              color: "#fff", // white text
+              backgroundColor: "#4253c0", // your custom blue
+            })}
+            onClick={() => onSelect(quiz)}
+          >
+            Register
+          </Button>
+        );
       }
+
+      // ✅ If registered and quiz has started, allow starting
+      if (quiz.registrationStatus === "accepted" && quiz.canAttempt) {
+        return (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setActiveTab("quiz")}
+            sx={{
+              color: "black",
+              backgroundColor: "rgba(0, 0, 0, 0.12)",
+            }}
+          >
+            Start Quiz
+          </Button>
+        );
+      }
+
+      // ✅ If quiz is not yet live
       return (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => onSelect(quiz)}
-          sx={{
-            color: "black",
-            backgroundColor: "rgba(0, 0, 0, 0.12)",
-          }}
-        >
-          Start Quiz
-        </Button>
+        <Typography color="text.secondary" fontWeight="bold">
+          Not yet available
+        </Typography>
       );
     };
 
@@ -247,6 +280,7 @@ const StudentDashboard = () => {
   const attemptableQuizzes = quizzes.filter(
     (q) => q.canAttempt && !q.hasAttempted
   );
+
   const registerableQuizzes = quizzes.filter(
     (q) => q.canRegister && q.registrationStatus === "not_registered"
   );
@@ -403,6 +437,7 @@ const StudentDashboard = () => {
                 <Typography variant="h6" mt={2}>
                   Available Quizzes (Open for Registration)
                 </Typography>
+
                 {registerableQuizzes.length === 0 ? (
                   <Typography>
                     No quizzes currently open for registration.
@@ -412,7 +447,7 @@ const StudentDashboard = () => {
                     <QuizCard
                       key={quiz._id}
                       quiz={quiz}
-                      onRegister={registerForQuiz}
+                      onSelect={registerForQuiz}
                       context="available"
                     />
                   ))

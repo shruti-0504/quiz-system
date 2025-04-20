@@ -15,7 +15,8 @@ import {
   Stack,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
   const [pendingStudents, setPendingStudents] = useState([]);
@@ -48,6 +49,8 @@ const TeacherDashboard = () => {
   });
   const [editQuiz, setEditQuiz] = useState(null);
   const sections = ["K22FG", "K23FG", "K22CS", "K23CS", "K22SE", "K23SE"];
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
 
   // Fetch data
   useEffect(() => {
@@ -530,33 +533,53 @@ const TeacherDashboard = () => {
               <p>No students without sections found.</p>
             ) : (
               students.map((student) => (
-                <div key={student._id} className="student-card">
-                  <h3>{student.email}</h3>
-                  <select
-                    value={student.section}
-                    onChange={(e) => {
-                      const updatedStudents = students.map((s) =>
-                        s._id === student._id
-                          ? { ...s, section: e.target.value }
-                          : s
-                      );
-                      setStudents(updatedStudents);
-                    }}
-                  >
-                    <option value="">Select Section</option>
-                    {sections.map((section) => (
-                      <option key={section} value={section}>
-                        {section}
-                      </option>
-                    ))}
-                  </select>
-                  <button
+                <Box
+                  key={student._id}
+                  className="student-card"
+                  sx={{
+                    p: 2,
+                    mb: 2,
+                    border: "1px solid #ccc",
+                    borderRadius: 2,
+                    boxShadow: 1,
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    {student.email}
+                  </Typography>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+                    <InputLabel>Select Section</InputLabel>
+                    <Select
+                      label="Select Section"
+                      value={student.section}
+                      onChange={(e) => {
+                        const updatedStudents = students.map((s) =>
+                          s._id === student._id
+                            ? { ...s, section: e.target.value }
+                            : s
+                        );
+                        setStudents(updatedStudents);
+                      }}
+                    >
+                      <MenuItem value="">Select Section</MenuItem>
+                      {sections.map((section) => (
+                        <MenuItem key={section} value={section}>
+                          {section}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <Button
+                    variant="contained"
+                    color="primary"
                     onClick={() => updateSection(student._id, student.section)}
                     disabled={!student.section}
                   >
                     Update
-                  </button>
-                </div>
+                  </Button>
+                </Box>
               ))
             )}
           </div>
@@ -662,7 +685,11 @@ const TeacherDashboard = () => {
                                   fontWeight: "bold",
                                   color:
                                     student.approvedByTeacher === "accepted"
-                                      ? "green"
+                                      ? theme.palette.mode === "dark"
+                                        ? "#90ee90"
+                                        : "green"
+                                      : theme.palette.mode === "dark"
+                                      ? "#ff7f7f"
                                       : "red",
                                 }}
                               >
@@ -865,14 +892,14 @@ const TeacherDashboard = () => {
                 <Button
                   startIcon={<DeleteIcon />}
                   color="error"
-                  variant="outlined"
+                  variant="contained"
                   onClick={() => removeQuestion(qIndex)}
                   sx={{
                     mt: 1,
                     "&:hover": {
-                      backgroundColor: "#ffebee", // light red shade for hover
-                      borderColor: "#f44336", // optional: keep border on hover
-                      color: "#d32f2f", // optional: darken text on hover
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "#ff6666" : "#ff4d4d", // dark/light hover red
+                      color: "#fff", // optional: white text on hover
                     },
                   }}
                 >
@@ -882,13 +909,35 @@ const TeacherDashboard = () => {
             ))}
 
             <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-              <Button variant="outlined" onClick={addQuestion}>
+              <Button
+                variant="contained"
+                onClick={addQuestion}
+                sx={(theme) => ({
+                  color: "#fff", // white text
+                  backgroundColor: "#4253c0", // your custom blue
+                })}
+              >
                 Add Question
               </Button>
-              <Button variant="contained" onClick={handleCreateQuiz}>
+
+              <Button
+                variant="contained"
+                onClick={handleCreateQuiz}
+                sx={(theme) => ({
+                  color: "#fff", // white text
+                  backgroundColor: "#4253c0", // your custom blue
+                })}
+              >
                 Submit Quiz
               </Button>
-              <Button variant="text" onClick={resetCreateForm}>
+              <Button
+                variant="contained"
+                onClick={resetCreateForm}
+                sx={(theme) => ({
+                  color: "#fff", // white text
+                  backgroundColor: "#4253c0", // your custom blue
+                })}
+              >
                 Reset Quiz
               </Button>
             </Box>
@@ -1079,15 +1128,17 @@ const TeacherDashboard = () => {
                         </FormControl>
                       </Stack>
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         color="error"
                         startIcon={<DeleteIcon />}
                         sx={{
                           mt: 1,
                           "&:hover": {
-                            backgroundColor: "#ffebee", // light red shade for hover
-                            borderColor: "#f44336", // optional: keep border on hover
-                            color: "#d32f2f", // optional: darken text on hover
+                            backgroundColor:
+                              theme.palette.mode === "dark"
+                                ? "#c32f2f"
+                                : "#ff4d4d", // dark/light hover red
+                            color: "#fff", // optional: white text on hover
                           },
                         }}
                         onClick={() => removeEditQuestion(qIndex)}
@@ -1096,19 +1147,30 @@ const TeacherDashboard = () => {
                       </Button>
                     </Box>
                   ))}
-                  <Button variant="outlined" onClick={addEditQuestion}>
+                  <Button
+                    variant="contained"
+                    onClick={addQuestion}
+                    sx={(theme) => ({
+                      color: "#fff", // white text
+                      backgroundColor: "#4253c0", // your custom blue
+                    })}
+                  >
                     Add Question
                   </Button>
                 </Box>
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleUpdateQuiz}
-                  sx={{ mt: 2 }}
-                >
-                  {isLoading ? "Updating..." : "Update Quiz"}
-                </Button>
+                <center>
+                  <Button
+                    variant="contained"
+                    onClick={handleCreateQuiz}
+                    sx={(theme) => ({
+                      color: "#fff", // white text
+                      backgroundColor: "#4253c0", // your custom blue
+                    })}
+                  >
+                    {isLoading ? "Updating..." : "Update Quiz"}
+                  </Button>
+                </center>
               </>
             )}
           </Box>

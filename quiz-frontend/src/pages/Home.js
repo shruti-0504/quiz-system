@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -46,6 +45,7 @@ import DarkModeToggle from "../components/DarkModeToggle";
 const Home = () => {
   const [isLoading] = useState(false);
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode == "dark";
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isLogin, setIsLogin] = useState(true);
   const [step, setStep] = useState(1);
@@ -61,7 +61,6 @@ const Home = () => {
   const [otp, setOtp] = useState("");
   const [errors, setErrors] = useState({});
   const formRef = useRef(null);
-  const navigate = useNavigate();
   const techStack = [
     { Icon: CodeIcon, label: "React + MUI", desc: "Frontend UI & logic" },
     {
@@ -137,7 +136,11 @@ const Home = () => {
 
         setTimeout(() => {
           const storedRole = localStorage.getItem("role");
-          navigate(storedRole === "teacher" ? "/TeacherDash" : "/StudentDash");
+          if (
+            storedRole === "teacher"
+              ? (window.location.href = "/TeacherDash")
+              : (window.location.href = "/StudentDash")
+          );
         }, 200);
       } else {
         const msg =
@@ -289,6 +292,7 @@ const Home = () => {
                 py: 1.5,
                 fontWeight: "bold",
                 boxShadow: `0 2px 5px ${theme.palette.primary.light}`,
+                backgroundColor: "#5a6cd2",
               }}
               endIcon={<SchoolIcon />}
               onClick={() =>
@@ -461,7 +465,12 @@ const Home = () => {
               label="Login"
               icon={<PersonIcon />}
               iconPosition="start"
-              sx={{ fontWeight: 600 }}
+              sx={{
+                fontWeight: 600,
+                "&:hover": {
+                  color: isDarkMode ? "#ff4d4d" : "#fff", // light red shade for hover
+                },
+              }}
             />
             <Tab
               label="Register"
@@ -513,6 +522,7 @@ const Home = () => {
                   borderRadius: 2,
                   fontWeight: "bold",
                   fontSize: "1rem",
+                  backgroundColor: "#5a6cd2",
                 }}
                 onClick={handleLogin}
                 disabled={isLoading}
