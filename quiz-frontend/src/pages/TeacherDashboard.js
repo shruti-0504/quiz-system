@@ -48,7 +48,7 @@ const TeacherDashboard = () => {
     ],
   });
   const [editQuiz, setEditQuiz] = useState(null);
-  const sections = ["K22FG", "K23FG", "K22CS", "K23CS", "K22SE", "K23SE"];
+  const sections = ["K22FG", "K23FG", "K22CS", "K23CS"];
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
 
@@ -487,7 +487,7 @@ const TeacherDashboard = () => {
       questions: prev.questions.filter((_, i) => i !== index),
     }));
   };
-
+  console.log(pendingStudents);
   return (
     <div className="teacher-dashboard">
       <div className="dashboard-header">
@@ -621,75 +621,76 @@ const TeacherDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingStudents
-                      .filter((student) => {
-                        return selectedQuiz
-                          ? student.studentDetails?.section ===
-                              selectedQuiz.section
-                          : true;
-                      })
+                    {pendingStudents.map((student) => (
+                      <tr key={student._id}>
+                        <td>{student.studentRegNo || "Unknown"}</td>
+                        <td>{student.studentDetails?.name || "Unknown"}</td>
 
-                      .map((student) => (
-                        <tr key={student._id}>
-                          <td>{student.studentRegNo || "Unknown"}</td>
-                          <td>{student.studentDetails?.name || "Unknown"}</td>
-
-                          <td>
-                            {student.studentDetails?.section || "Not assigned"}
-                          </td>
-                          <td>{selectedQuiz?.course || "Unknown"}</td>
-                          <td className="approval-actions">
-                            {student.approvedByTeacher === "pending" ? (
-                              <>
-                                <button
-                                  onClick={() =>
-                                    handleApproval(
-                                      student.studentRegNo,
-                                      quizTitle,
-                                      "accepted"
-                                    )
-                                  }
-                                  disabled={!quizTitle}
-                                  className="approve-btn"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleApproval(
-                                      student.studentRegNo,
-                                      quizTitle,
-                                      "rejected"
-                                    )
-                                  }
-                                  className="reject-btn"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            ) : (
-                              <span
-                                style={{
-                                  fontWeight: "bold",
-                                  color:
-                                    student.approvedByTeacher === "accepted"
-                                      ? theme.palette.mode === "dark"
-                                        ? "#90ee90"
-                                        : "green"
-                                      : theme.palette.mode === "dark"
-                                      ? "#ff7f7f"
-                                      : "red",
-                                }}
+                        <td>
+                          {student.studentDetails?.section || "Not assigned"}
+                        </td>
+                        <td>{selectedQuiz?.course || "Unknown"}</td>
+                        <td
+                          className="approval-actions"
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          {student.approvedByTeacher === "pending" ? (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleApproval(
+                                    student.studentRegNo,
+                                    quizTitle,
+                                    "accepted"
+                                  )
+                                }
+                                disabled={!quizTitle}
+                                className="approve-btn"
+                                style={{ marginRight: "10px" }} // Add some spacing between buttons
                               >
-                                {student.approvedByTeacher
-                                  .charAt(0)
-                                  .toUpperCase() +
-                                  student.approvedByTeacher.slice(1)}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                                Approve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleApproval(
+                                    student.studentRegNo,
+                                    quizTitle,
+                                    "rejected"
+                                  )
+                                }
+                                className="reject-btn"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : (
+                            <span
+                              style={{
+                                fontWeight: "bold",
+                                alignContent: "center",
+                                color:
+                                  student.approvedByTeacher === "accepted"
+                                    ? theme.palette.mode === "dark"
+                                      ? "#90ee90"
+                                      : "green"
+                                    : theme.palette.mode === "dark"
+                                    ? "#ff7f7f"
+                                    : "red",
+                              }}
+                            >
+                              {student.approvedByTeacher
+                                .charAt(0)
+                                .toUpperCase() +
+                                student.approvedByTeacher.slice(1)}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
