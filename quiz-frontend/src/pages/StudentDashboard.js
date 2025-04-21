@@ -35,6 +35,7 @@ const StudentDashboard = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const { darkMode } = useTheme();
+  const [tabIndex, setTabIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("student-dashboard");
 
   useEffect(() => {
@@ -49,7 +50,7 @@ const StudentDashboard = () => {
       const res = await fetch(
         `${BASE_URL}/courses?registrationNumber=${studentId}`
       );
-      if (!res.ok) throw new Error("Failed to fetch merged course data");
+      if (!res.ok) throw new Error("Failed to fetch course data");
 
       const data = await res.json();
 
@@ -91,7 +92,7 @@ const StudentDashboard = () => {
       isLoading(true);
       const { data } = await axios.get(`${BASE_URL}/quizzes`, {
         params: {
-          studentId: studentId, // or however you're storing it
+          studentId: studentId,
           section: studentSection,
         },
       });
@@ -102,7 +103,18 @@ const StudentDashboard = () => {
       isLoading(false);
     }
   };
-  console.log(quizzes);
+  const attemptableQuizzes = quizzes.filter(
+    (q) => q.canAttempt && !q.hasAttempted
+  );
+
+  const registerableQuizzes = quizzes.filter(
+    (q) => q.canRegister && q.registrationStatus === "not_registered"
+  );
+  const attemptedQuizzes = quizzes.filter((q) => q.hasAttempted);
+
+  const registeredQuizzes = quizzes.filter(
+    (q) => q.isRegistered && !q.hasAttempted
+  );
 
   const registerForQuiz = async (quiz) => {
     try {
@@ -120,18 +132,31 @@ const StudentDashboard = () => {
       alert(err.response?.data?.message || "Failed to register");
     }
   };
-  const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabChange = (_, newValue) => {
     setTabIndex(newValue);
   };
-  console.log(quizzes);
-  const QuizCard = ({ quiz, onSelect }) => {
+  const QuizCard = ({ quiz, onSelect, context }) => {
     const getAction = () => {
       const now = new Date();
       const hasEnded = quiz.endTime && new Date(quiz.endTime) < now;
-      const hasStarted = quiz.startTime && new Date(quiz.startTime) <= now;
       const regClosed = quiz.RegEndTime && new Date(quiz.RegEndTime) < now;
+
+      if (context === "registered" && !quiz.hasAttempted && quiz.canAttempt) {
+        return (
+          <Button
+            variant="contained"
+            sx={{
+              color: "#fff",
+              backgroundColor: "#4253c0",
+            }}
+            fontWeight="bold"
+            onClick={() => setActiveTab("quiz")}
+          >
+            Start Quiz
+          </Button>
+        );
+      }
 
       if (quiz.hasAttempted) {
         return (
@@ -174,28 +199,26 @@ const StudentDashboard = () => {
           );
         }
 
-        // ✅ SHOW REGISTER BUTTON
         return (
           <Button
             variant="contained"
-            sx={(theme) => ({
-              color: "#fff", // white text
-              backgroundColor: "#4253c0", // your custom blue
-            })}
-            onClick={() => onSelect(quiz)}
+            sx={{
+              color: "#fff",
+              backgroundColor: "#4253c0",
+            }}
+            onClick={() => onSelect?.(quiz)}
           >
             Register
           </Button>
         );
       }
 
-      // ✅ If registered and quiz has started, allow starting
       if (quiz.registrationStatus === "accepted" && quiz.canAttempt) {
         return (
           <Button
             variant="contained"
             color="primary"
-            onClick={() => setActiveTab("quiz")}
+            onClick={() => onSelect?.(quiz)}
             sx={{
               color: "black",
               backgroundColor: "rgba(0, 0, 0, 0.12)",
@@ -206,7 +229,6 @@ const StudentDashboard = () => {
         );
       }
 
-      // ✅ If quiz is not yet live
       return (
         <Typography color="text.secondary" fontWeight="bold">
           Not yet available
@@ -234,10 +256,16 @@ const StudentDashboard = () => {
             {quiz.title}
           </Typography>
           <Typography variant="body2">
-            <strong>Start:</strong> {new Date(quiz.startTime).toLocaleString()}
+            <strong>Start:</strong>
+            {context === "available"
+              ? new Date(quiz.RegStartTime).toLocaleString()
+              : new Date(quiz.startTime).toLocaleString()}
           </Typography>
           <Typography variant="body2" gutterBottom>
-            <strong>End:</strong> {new Date(quiz.endTime).toLocaleString()}
+            <strong>End:</strong>
+            {context === "available"
+              ? new Date(quiz.RegEndTime).toLocaleString()
+              : new Date(quiz.endTime).toLocaleString()}
           </Typography>
           <Box mt={2}>{getAction()}</Box>
         </CardContent>
@@ -277,26 +305,6 @@ const StudentDashboard = () => {
       appearsInRegistered: q.isRegistered && !q.hasAttempted,
     });
   });
-  const attemptableQuizzes = quizzes.filter(
-    (q) => q.canAttempt && !q.hasAttempted
-  );
-
-  const registerableQuizzes = quizzes.filter(
-    (q) => q.canRegister && q.registrationStatus === "not_registered"
-  );
-  const attemptedQuizzes = quizzes.filter((q) => q.hasAttempted);
-
-  const registeredQuizzes = quizzes.filter(
-    (q) => q.isRegistered && !q.hasAttempted
-  );
-  console.log(
-    "Attempted Quizzes:",
-    attemptedQuizzes.map((q) => q.title)
-  );
-  console.log(
-    "Registered Quizzes:",
-    registeredQuizzes.map((q) => q.title)
-  );
 
   return (
     <Box p={3}>
@@ -361,9 +369,9 @@ const StudentDashboard = () => {
                             color="error"
                             sx={{
                               "&:hover": {
-                                backgroundColor: "#ffebee", // light red shade for hover
-                                borderColor: "#f44336", // optional: keep border on hover
-                                color: "#d32f2f", // optional: darken text on hover
+                                backgroundColor: "#999", // light red shade for hover
+                                borderColor: "#ccc", // optional: keep border on hover
+                                color: "#000", // optional: darken text on hover
                               },
                             }}
                             onClick={() =>
@@ -406,9 +414,9 @@ const StudentDashboard = () => {
                             variant="outlined"
                             sx={{
                               "&:hover": {
-                                backgroundColor: "#ffebee", // light red shade for hover
-                                borderColor: "#f44336", // optional: keep border on hover
-                                color: "#d32f2f", // optional: darken text on hover
+                                backgroundColor: "#999", // light red shade for hover
+                                borderColor: "#ccc", // optional: keep border on hover
+                                color: "#000", // // optional: darken text on hover
                               },
                             }}
                             onClick={() =>
@@ -506,7 +514,12 @@ const StudentDashboard = () => {
               <Grid container spacing={3}>
                 {attemptableQuizzes.map((quiz) => (
                   <Grid item xs={12} md={6} lg={4} key={quiz._id}>
-                    <QuizCard quiz={quiz} onSelect={handleQuizSelect} />
+                    <QuizCard
+                      key={quiz._id}
+                      quiz={quiz}
+                      context="attemptable"
+                      onSelect={handleQuizSelect}
+                    />
                   </Grid>
                 ))}
               </Grid>

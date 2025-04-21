@@ -111,6 +111,7 @@ const Home = () => {
         <ListItemText primary={text} />
       </ListItem>
     ));
+
   const handleLogin = async () => {
     if (!registrationNumber || !password) {
       setErrors({ fields: "All fields must be filled" });
@@ -127,7 +128,6 @@ const Home = () => {
       const data = await res.json();
 
       if (res.ok && data.role) {
-        localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
         localStorage.setItem("registrationNumber", data.registrationNumber);
         localStorage.setItem("section", data.section);

@@ -1,7 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { Typography, Button, Box, CircularProgress } from "@mui/material";
 import DarkModeToggle from "../components/DarkModeToggle";
-
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 import { useParams } from "react-router-dom";
 let tabSwitchCount = 0;
 let quizForceSubmitted = false; // renamed for clarity
@@ -42,7 +50,8 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [markedForReview, setMarkedForReview] = useState({});
   const hasSubmitted = useRef(false);
-
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [timerPaused, setTimerPaused] = useState(true);
   // Fetch quiz
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -113,8 +122,8 @@ const Quiz = () => {
         setQuiz(null);
         setAnswers({});
         setTimeout(() => {
-          window.location.href = "/quiz";
-        }, 300); // give alert time to close
+          window.location.href = "/studentDash";
+        }, 300);
       } else {
         setError(data.message || "Error submitting quiz!");
       }
@@ -127,13 +136,13 @@ const Quiz = () => {
 
   // Timer logic
   useEffect(() => {
-    if (!quiz || timeLeft <= 0) return;
+    if (!quiz || timeLeft <= 0 || timerPaused) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1000) {
           clearInterval(timer);
-          setTimeout(() => handleSubmit(), 100); // tiny delay ensures latest state
+          setTimeout(() => handleSubmit(), 100);
           return 0;
         }
 
@@ -142,7 +151,8 @@ const Quiz = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [quiz]);
+  }, [quiz, timeLeft, timerPaused]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentIndex]);
@@ -154,7 +164,7 @@ const Quiz = () => {
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     const forceSubmitListener = () => {
-      handleSubmit(); // full cleanup happens inside
+      handleSubmit();
     };
     window.addEventListener("forceSubmitQuiz", forceSubmitListener);
 
@@ -176,9 +186,105 @@ const Quiz = () => {
       verticalAlign: "middle",
     };
   }
+
   return (
     <Box display="flex" p={3}>
       {/* Left Panel - Quiz Content */}
+      <Dialog open={showInstructions}>
+        <DialogTitle>📘 Quiz Instructions</DialogTitle>
+        <DialogContent>
+          <List>
+            <ListItem>
+              <ListItemText>
+                Navigation: You can move forward/backward to change answers.
+              </ListItemText>
+            </ListItem>
+
+            <ListItem>
+              <ListItemText>
+                You can only move to a question if it's unanswered or marked for
+                review.
+              </ListItemText>
+            </ListItem>
+            <ListItem>
+              <ListItemText>
+                The right panel shows question statuses with color codes:
+              </ListItemText>
+            </ListItem>
+
+            {/* Color code explanation */}
+            <ListItem>
+              <Box
+                width={16}
+                height={16}
+                mr={1}
+                bgcolor="#90ee90"
+                borderRadius={1}
+              />
+              <ListItemText primary="Answered (Green)" />
+            </ListItem>
+            <ListItem>
+              <Box
+                width={16}
+                height={16}
+                mr={1}
+                bgcolor="#ffb347"
+                borderRadius={1}
+              />
+              <ListItemText primary="Marked for Review (Orange)" />
+            </ListItem>
+            <ListItem>
+              <Box
+                width={16}
+                height={16}
+                mr={1}
+                bgcolor="#b19cd9"
+                borderRadius={1}
+              />
+              <ListItemText primary="Marked & Answered (Purple)" />
+            </ListItem>
+            <ListItem>
+              <Box
+                width={16}
+                height={16}
+                mr={1}
+                bgcolor="#fdd835"
+                borderRadius={1}
+              />
+              <ListItemText primary="Visited (Yellow)" />
+            </ListItem>
+            <ListItem>
+              <Box
+                width={16}
+                height={16}
+                mr={1}
+                bgcolor="#add8e6"
+                borderRadius={1}
+              />
+              <ListItemText primary="Current (Blue)" />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="⚠️ Do NOT switch tabs — Auto-submit after 3 switches."
+                primaryTypographyProps={{ color: "error" }}
+              />
+            </ListItem>
+          </List>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowInstructions(false);
+              setTimerPaused(false); // ✅ Start timer now
+            }}
+            variant="contained"
+          >
+            Start Quiz
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box flex={1}>
         {loading && <CircularProgress />}
         {error && (

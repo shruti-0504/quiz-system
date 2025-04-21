@@ -70,10 +70,10 @@ const TeacherDashboard = () => {
         );
 
         // Fetch quizzes
-        const quizzesRes = await axios.get(
+        const quizzes = await axios.get(
           `http://localhost:5000/teacher/quizzes?teacherId=${teacherId}`
         );
-        setQuizzes(quizzesRes.data);
+        setQuizzes(quizzes.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -533,19 +533,9 @@ const TeacherDashboard = () => {
               <p>No students without sections found.</p>
             ) : (
               students.map((student) => (
-                <Box
-                  key={student._id}
-                  className="student-card"
-                  sx={{
-                    p: 2,
-                    mb: 2,
-                    border: "1px solid #ccc",
-                    borderRadius: 2,
-                    boxShadow: 1,
-                  }}
-                >
+                <Box key={student._id} className="student-card">
                   <Typography variant="h6" gutterBottom>
-                    {student.email}
+                    {student.name}
                   </Typography>
 
                   <FormControl fullWidth size="small" sx={{ mb: 1 }}>
@@ -589,11 +579,10 @@ const TeacherDashboard = () => {
             <h2>Registered Students</h2>
 
             <div className="quiz-selection-container">
-              {/* <label htmlFor="quizTitle">Select Quiz: </label> */}
               <FormControl fullWidth>
                 <InputLabel>Select Quiz</InputLabel>
                 <Select
-                  value={selectedQuiz}
+                  value={quizTitle}
                   size="small"
                   label="Select Quiz"
                   onChange={(e) => setQuizTitle(e.target.value)}
@@ -668,7 +657,6 @@ const TeacherDashboard = () => {
                                 <button
                                   onClick={() =>
                                     handleApproval(
-                                      student.studentRegNo,
                                       student.studentRegNo,
                                       quizTitle,
                                       "rejected"
