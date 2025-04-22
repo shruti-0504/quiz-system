@@ -333,44 +333,42 @@ const Home = () => {
             },
           ].map((feature, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
-              <Fade in={true} style={{ transitionDelay: `${index * 100}ms` }}>
-                <Paper
-                  elevation={3}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  textAlign: "center",
+                  height: "100%",
+                  borderRadius: 3,
+                  transition: "transform 0.3s",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                    boxShadow: theme.shadows[6],
+                  },
+                }}
+              >
+                <Avatar
                   sx={{
-                    p: 2,
-                    textAlign: "center",
-                    height: "100%",
-                    borderRadius: 3,
-                    transition: "transform 0.3s",
-                    "&:hover": {
-                      transform: "translateY(-5px)",
-                      boxShadow: theme.shadows[6],
-                    },
+                    bgcolor: theme.palette.primary.light,
+                    width: 60,
+                    height: 60,
+                    mx: "auto",
+                    mb: 2,
                   }}
                 >
-                  <Avatar
-                    sx={{
-                      bgcolor: theme.palette.primary.light,
-                      width: 60,
-                      height: 60,
-                      mx: "auto",
-                      mb: 2,
-                    }}
-                  >
-                    {feature.icon}
-                  </Avatar>
-                  <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
-                    {feature.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1 }}
-                  >
-                    {feature.desc}
-                  </Typography>
-                </Paper>
-              </Fade>
+                  {feature.icon}
+                </Avatar>
+                <Typography variant="h6" sx={{ mt: 1, fontWeight: 600 }}>
+                  {feature.title}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  {feature.desc}
+                </Typography>
+              </Paper>
             </Grid>
           ))}
         </Grid>
@@ -424,7 +422,7 @@ const Home = () => {
               }}
             >
               <Typography variant="h6" fontWeight="bold" gutterBottom>
-                🔐 Security & Timing
+                🔐 Security & Timing ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ
               </Typography>
               <List>{renderList(quizSecurity, LockIcon)}</List>
             </Paper>
