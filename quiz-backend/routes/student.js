@@ -4,7 +4,7 @@ const Course = require("../models/Course");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const StudentRegistration = require("../models/StudentRegistration");
-const Quiz = require("../models/Quiz"); // Assuming you have a Quiz model
+const Quiz = require("../models/quiz"); // Assuming you have a Quiz model
 const StudentResponse = require("../models/StudentResponse"); // Adjust path as needed
 
 router.put("/courses", async (req, res) => {

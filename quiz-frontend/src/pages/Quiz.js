@@ -202,13 +202,13 @@ const Quiz = () => {
 
             <ListItem>
               <ListItemText>
-                You can only move to a question if it's unanswered or marked for
-                review.
+                You can only move to a previous question if it's unanswered or
+                marked for review.
               </ListItemText>
             </ListItem>
             <ListItem>
               <ListItemText>
-                The right panel shows question statuses with color codes:
+                The side panel shows question statuses with color codes:
               </ListItemText>
             </ListItem>
 
