@@ -16,8 +16,8 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 const TeacherDashboard = () => {
+  const API_BASE = process.env.REACT_APP_API_URL;
   const [students, setStudents] = useState([]);
   const [pendingStudents, setPendingStudents] = useState([]);
   const [quizTitle, setQuizTitle] = useState("");
@@ -60,7 +60,7 @@ const TeacherDashboard = () => {
 
         // Fetch students with no section
         const studentsRes = await axios.get(
-          "http://localhost:5000/teacher/students/no-section"
+          `${API_BASE}/teacher/students/no-section`
         );
         setStudents(
           studentsRes.data.map((student) => ({
@@ -71,7 +71,7 @@ const TeacherDashboard = () => {
 
         // Fetch quizzes
         const quizzes = await axios.get(
-          `http://localhost:5000/teacher/quizzes?teacherId=${teacherId}`
+          `${API_BASE}/teacher/quizzes?teacherId=${teacherId}`
         );
         setQuizzes(quizzes.data);
       } catch (error) {
@@ -93,7 +93,7 @@ const TeacherDashboard = () => {
     setIsLoading(true);
     try {
       const res = await axios.get(
-        `http://localhost:5000/teacher/students/all?teacherId=${teacherId}&quizTitle=${quizTitle}`
+        `${API_BASE}/teacher/students/all?teacherId=${teacherId}&quizTitle=${quizTitle}`
       );
 
       setPendingStudents(res.data);
@@ -114,7 +114,7 @@ const TeacherDashboard = () => {
         try {
           setIsLoading(true);
           const response = await axios.get(
-            `http://localhost:5000/teacher/results/${selectedQuiz}`
+            `${API_BASE}/teacher/results/${selectedQuiz}`
           );
           setResults(response.data);
         } catch (error) {
@@ -133,7 +133,7 @@ const TeacherDashboard = () => {
   const updateSection = async (id, section) => {
     try {
       setIsLoading(true);
-      await axios.put(`http://localhost:5000/teacher/update-section/${id}`, {
+      await axios.put(`${API_BASE}/teacher/update-section/${id}`, {
         section,
       });
       setStudents(students.filter((student) => student._id !== id));
@@ -149,7 +149,7 @@ const TeacherDashboard = () => {
       setIsLoading(true);
 
       await axios.put(
-        `http://localhost:5000/teacher/approve-student?studentRegNo=${studentId}&quizTitle=${quizId}&status=${status}`
+        `${API_BASE}/teacher/approve-student?studentRegNo=${studentId}&quizTitle=${quizId}&status=${status}`
       );
 
       // ⬅️ Refetch the updated list
@@ -173,9 +173,7 @@ const TeacherDashboard = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `http://localhost:5000/teacher/quiz/${selectedQuiz}`
-        );
+        const res = await fetch(`${API_BASE}/teacher/quiz/${selectedQuiz}`);
 
         // Check if the response status is OK
         if (!res.ok) {
@@ -279,7 +277,7 @@ const TeacherDashboard = () => {
 
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/teacher/quiz/create", {
+      const res = await fetch("${API_BASE}/teacher/quiz/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -353,7 +351,7 @@ const TeacherDashboard = () => {
     setError(null);
     try {
       const res = await fetch(
-        `http://localhost:5000/teacher/quiz/update/${selectedQuiz}`,
+        `${API_BASE}/teacher/quiz/update/${selectedQuiz}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -365,7 +363,6 @@ const TeacherDashboard = () => {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const data = await res.json();
       alert("Quiz updated successfully!");
     } catch (err) {
       console.error("Quiz update error:", err);
@@ -487,7 +484,6 @@ const TeacherDashboard = () => {
       questions: prev.questions.filter((_, i) => i !== index),
     }));
   };
-  console.log(pendingStudents);
   return (
     <div className="teacher-dashboard">
       <div className="dashboard-header">
@@ -674,10 +670,10 @@ const TeacherDashboard = () => {
                                 alignContent: "center",
                                 color:
                                   student.approvedByTeacher === "accepted"
-                                    ? theme.palette.mode === "dark"
+                                    ? isDarkMode
                                       ? "#90ee90"
                                       : "green"
-                                    : theme.palette.mode === "dark"
+                                    : isDarkMode
                                     ? "#ff7f7f"
                                     : "red",
                               }}
@@ -886,8 +882,7 @@ const TeacherDashboard = () => {
                   sx={{
                     mt: 1,
                     "&:hover": {
-                      backgroundColor:
-                        theme.palette.mode === "dark" ? "#ff6666" : "#ff4d4d", // dark/light hover red
+                      backgroundColor: isDarkMode ? "#ff6666" : "#ff4d4d", // dark/light hover red
                       color: "#fff", // optional: white text on hover
                     },
                   }}
@@ -1123,10 +1118,7 @@ const TeacherDashboard = () => {
                         sx={{
                           mt: 1,
                           "&:hover": {
-                            backgroundColor:
-                              theme.palette.mode === "dark"
-                                ? "#c32f2f"
-                                : "#ff4d4d", // dark/light hover red
+                            backgroundColor: isDarkMode ? "#c32f2f" : "#ff4d4d", // dark/light hover red
                             color: "#fff", // optional: white text on hover
                           },
                         }}
@@ -1138,7 +1130,7 @@ const TeacherDashboard = () => {
                   ))}
                   <Button
                     variant="contained"
-                    onClick={addQuestion}
+                    onClick={addEditQuestion}
                     sx={(theme) => ({
                       color: "#fff", // white text
                       backgroundColor: "#4253c0", // your custom blue
@@ -1151,7 +1143,7 @@ const TeacherDashboard = () => {
                 <center>
                   <Button
                     variant="contained"
-                    onClick={handleCreateQuiz}
+                    onClick={handleUpdateQuiz}
                     sx={(theme) => ({
                       color: "#fff", // white text
                       backgroundColor: "#4253c0", // your custom blue

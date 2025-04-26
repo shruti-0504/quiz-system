@@ -21,9 +21,9 @@ import DarkModeToggle from "../components/DarkModeToggle";
 import { useTheme } from "../components/ThemeContext.js"; // adjust the path if needed
 
 const StudentDashboard = () => {
-  const BASE_URL =
+  const API_BASE =
     process.env.REACT_APP_API_URL || "http://localhost:5000/student";
-
+  const BASE_URL = `${API_BASE}/student`;
   const [user, setUser] = useState({ section: "", courses: [] });
   const [availableCourses, setAvailableCourses] = useState([]);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -295,16 +295,6 @@ const StudentDashboard = () => {
     }
     setSelectedQuiz(quiz);
   };
-
-  console.log("=== All Quizzes ===");
-  quizzes.forEach((q) => {
-    console.log(q.title, {
-      hasAttempted: q.hasAttempted,
-      isRegistered: q.isRegistered,
-      appearsInAttempted: q.hasAttempted,
-      appearsInRegistered: q.isRegistered && !q.hasAttempted,
-    });
-  });
 
   return (
     <Box p={3}>

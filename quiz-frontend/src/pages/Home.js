@@ -43,6 +43,7 @@ import {
 import DarkModeToggle from "../components/DarkModeToggle";
 
 const Home = () => {
+  const API_BASE = process.env.REACT_APP_API_URL;
   const [isLoading] = useState(false);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode == "dark";
@@ -119,7 +120,7 @@ const Home = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ registrationNumber, password }),
@@ -188,7 +189,7 @@ const Home = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/auth/send-otp", {
+      const res = await fetch(`${API_BASE}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -208,7 +209,7 @@ const Home = () => {
 
   const verifyOtpAndRegister = async () => {
     try {
-      const res = await fetch("http://localhost:5000/auth/verify-otp", {
+      const res = await fetch(`${API_BASE}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -332,7 +333,7 @@ const Home = () => {
               desc: "Automated grading with manual override options.",
             },
           ].map((feature, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
+            <Grid xs={12} sm={6} md={3} key={index}>
               <Paper
                 elevation={3}
                 sx={{
@@ -379,7 +380,7 @@ const Home = () => {
         </Typography>
         <Divider />
         <Grid container spacing={3} mt={2}>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid xs={12} sm={6} md={4}>
             <Paper
               elevation={4}
               sx={{
@@ -395,7 +396,7 @@ const Home = () => {
               <List>{renderList(teacherFeatures, AssignmentIcon)}</List>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid xs={12} sm={6} md={4}>
             <Paper
               elevation={4}
               sx={{
@@ -411,7 +412,7 @@ const Home = () => {
               <List>{renderList(studentFeatures, PeopleIcon)}</List>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={12} md={4}>
+          <Grid xs={12} sm={12} md={4}>
             <Paper
               elevation={4}
               sx={{
@@ -696,7 +697,6 @@ const Home = () => {
         <Grid container spacing={3} justifyContent="center">
           {techStack.map((item, index) => (
             <Grid
-              item
               xs={12}
               sm={6}
               md={4}

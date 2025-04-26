@@ -39,6 +39,7 @@ const handleVisibilityChange = () => {
 };
 
 const Quiz = () => {
+  const API_BASE = process.env.REACT_APP_API_URL;
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -61,7 +62,7 @@ const Quiz = () => {
         return;
       }
       try {
-        const res = await fetch(`http://localhost:5000/student/quiz/${id}`);
+        const res = await fetch(`${API_BASE}/student/quiz/${id}`);
         const data = await res.json();
         if (res.ok) {
           setQuiz(data.quiz);
@@ -106,14 +107,11 @@ const Quiz = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/student/submit-quiz/${id}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answers: answersRef.current, studentId }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/student/submit-quiz/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers: answersRef.current, studentId }),
+      });
 
       const data = await res.json();
 
