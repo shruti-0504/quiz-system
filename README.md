@@ -40,7 +40,7 @@ link: https://quiz-system-psi.vercel.app/
 
 ## 🧱 Tech Stack
 
-- **Frontend**: React.js, Tailwind CSS
+- **Frontend**: React.js, MUI CSS
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB
 - **Authentication**: OTP System
@@ -75,18 +75,20 @@ link: https://quiz-system-psi.vercel.app/
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/quiz-portal.git
-cd quiz-portal
-Install dependencies
+git clone https://github.com/shruti-0504/quiz-system.git
+cd quiz-system
+# Install dependenc
 
-npm install     # for backend
-cd client && npm install   # for frontend
-Configure environment variables in .env
+#run backend
+npm install
+cd quiz-backend
+node server.js
 
-Start the servers
+#run frontend
+cd quiz-frontend
+npm start
 
-npm start       # backend
-cd client && npm start   # frontend
+
 📬 Feedback & Contributions
 Feel free to submit issues or feature requests. Contributions are welcome via pull requests.
 For major changes, please open an issue first to discuss what you would like to change.
